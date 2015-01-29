@@ -1,5 +1,6 @@
 package com.mereckaj.webproxy;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -10,6 +11,8 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.URL;
 import java.util.logging.Level;
+
+import org.apache.commons.io.IOUtils;
 
 import com.mereckaj.webproxy.utils.Utils;
 
@@ -104,16 +107,26 @@ public class ProxyWorkerThread extends Thread {
 			 * Get the data that was contained inside the packet being
 			 * transmitted
 			 */
-			charTmp = new char[ProxySettings.getInstance().getMaxBuffer()];
-			int size = incomingBufferedReader.read(charTmp, 0, charTmp.length);
-			char[] charBuffer = new char[size];
-			System.arraycopy(charTmp, 0, charBuffer, 0, size);
-
+//			charTmp = new char[ProxySettings.getInstance().getMaxBuffer()];
+//			int size = incomingBufferedReader.read(charTmp, 0, charTmp.length);
+//			char[] charBuffer = new char[size];
+//			System.arraycopy(charTmp, 0, charBuffer, 0, size);
+			
+			byteTmp = new byte[ProxySettings.getInstance().getMaxBuffer()];
+			int size = incomingInputStream.read(byteTmp, 0, byteTmp.length);
+			byte[] byteBuffer = new byte[size];
+			System.arraycopy(byteTmp, 0, byteBuffer, 0, size);
+			
+			/*
+			 * Create a string representation of the http header
+			 */
+			String payloadAsString = new String(byteBuffer);
+			
 			/*
 			 * Extract the url from payload
 			 */
-			URL url = new URL(Utils.getUrl(charBuffer));
-
+			URL url = new URL(Utils.getUrl(payloadAsString));
+			
 			/*
 			 * Check if filtering is enabled, if so Check if the host is
 			 * blocked,
@@ -144,41 +157,47 @@ public class ProxyWorkerThread extends Thread {
 								+ " contenct violation");
 				doActionIfBlocked();
 			}
-
+			
+			/*
+			 * Log connection request
+			 */
+			ProxyDataLogger.getInstance().log(Level.INFO,"Connect: " );
+			
 			/*
 			 * Content isn't blocked and host isn't blocked, forward the
 			 * connection
 			 */
-			InetAddress addr = InetAddress.getByName(url.getHost());
-			System.out.println(addr.getHostAddress());
-			proxyToServerSocket = new Socket(addr.getHostAddress(),
-					url.getPort() == -1 ? url.getDefaultPort() : url.getPort());
-			System.out.println(proxyToServerSocket.isConnected());
-			
-			/*
-			 * Read client inStream
-			 */
-			//TODO:
+			//TODO: Create socket
+			InetAddress serverAddress = InetAddress.getByName(url.getHost());
+			proxyToServerSocket = new Socket(serverAddress, 80);
+
 			/*
 			 * Write this data to server socket
 			 */
-
-			//TODO:
+			proxyToServerSocket.getOutputStream().write(byteBuffer, 0, byteBuffer.length);
+			proxyToServerSocket.getOutputStream().flush();
+			
 			/*
 			 * Get response from server
 			 */
-
-			//TODO:
+			byteTmp = new byte[ProxySettings.getInstance().getMaxBuffer()];
+			size = proxyToServerSocket.getInputStream().read(byteTmp, 0, byteTmp.length);
+			byteBuffer = new byte[size];
+			System.arraycopy(byteTmp, 0, byteBuffer, 0, size);
+			
+			String replyAsString = new String(byteBuffer);
+			//TODO: ??? filter response
+			
 			/*
 			 * Return response to user
 			 */
-
-			//TODO:
+			clientToProxySocket.getOutputStream().write(byteBuffer,0,byteBuffer.length);
+			clientToProxySocket.getOutputStream().flush();
 			/*
 			 * Close sockets and data streams
 			 */
 			clientToProxySocket.close();
-
+			proxyToServerSocket.close();
 		} catch (IOException e) {
 
 			/*

@@ -106,8 +106,7 @@ public class Utils {
 		Calendar cal = Calendar.getInstance();
 		return dateFormat.format(cal.getTime());
 	}
-	public static String getUrl(char[] buffer) {
-		String s = new String(buffer);
+	public static String getUrl(String s){
 		int i = s.indexOf(' ');
 		int n = s.indexOf('\n');
 		return s.substring(i, n).trim();
