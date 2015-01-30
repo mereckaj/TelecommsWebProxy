@@ -38,7 +38,7 @@ public class Main {
 	 * main method that initializes and launches the proxy
 	 */
 	public static void main(String[] args) {
-		
+
 		/*
 		 *  Read in the port specified by the config file
 		 */
