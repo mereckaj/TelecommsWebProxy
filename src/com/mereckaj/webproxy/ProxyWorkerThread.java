@@ -1,6 +1,5 @@
 package com.mereckaj.webproxy;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -11,8 +10,6 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.URL;
 import java.util.logging.Level;
-
-import org.apache.commons.io.IOUtils;
 
 import com.mereckaj.webproxy.utils.Utils;
 
@@ -47,8 +44,7 @@ public class ProxyWorkerThread extends Thread {
 	/*
 	 * Boolean value used to indicated if filtering of content is enabled
 	 */
-	private static final boolean filteringEnabled = ProxySettings.getInstance()
-			.isFilteringEnabled();
+	private static boolean filteringEnabled;
 	/*
 	 * 
 	 */
@@ -65,9 +61,8 @@ public class ProxyWorkerThread extends Thread {
 	Socket proxyToServerSocket;
 
 	/*
-	 * Temporary char and byte buffers TODO: Stop using char buffer
+	 * Temporary byte buffer, used for passing data between sockets.
 	 */
-	char[] charTmp;
 	byte[] byteTmp;
 
 	/**
@@ -78,6 +73,8 @@ public class ProxyWorkerThread extends Thread {
 	 */
 	public ProxyWorkerThread(Socket s) {
 		this.clientToProxySocket = s;
+		filteringEnabled = ProxySettings.getInstance()
+				.isFilteringEnabled();
 	}
 
 	/*
@@ -88,7 +85,7 @@ public class ProxyWorkerThread extends Thread {
 	 * This function will do all of the work for this thread.
 	 * 
 	 * It will take the data being passed by the client, parse it, create a
-	 * connection to some host, receive the reply, pass the reply back to the
+	 * connection to host, receive the reply, pass the reply back to the
 	 * user.
 	 */
 	public void run() {
@@ -109,6 +106,9 @@ public class ProxyWorkerThread extends Thread {
 			 */
 			byteTmp = new byte[ProxySettings.getInstance().getMaxBuffer()];
 			int size = incomingInputStream.read(byteTmp, 0, byteTmp.length);
+			if(size<=0){
+				return;
+			}
 			byte[] byteBuffer = new byte[size];
 			System.arraycopy(byteTmp, 0, byteBuffer, 0, size);
 
@@ -131,65 +131,62 @@ public class ProxyWorkerThread extends Thread {
 			 * 
 			 * (return some status and close socket)
 			 */
-			if (filteringEnabled && isBlockedHost(url.getHost())) {
-				ProxyDataLogger.getInstance().log(
-						Level.INFO,
-						"Blocked :" + url.getHost() + " from: "
-								+ clientToProxySocket.getInetAddress()
-								+ " blocked host");
-				doActionIfBlocked();
-			}
-
+			filterHost(url.getHost());
+			
 			/*
 			 * Host is not blocked so check the content for may violations it.
 			 * 
 			 * If yes, then log the violation and do some action as specified by
 			 * doActionIfBlocked(); (Check the response from server afterwards)
 			 */
-			if (filteringEnabled && containsBlockedContent()) {
-				ProxyDataLogger.getInstance().log(
-						Level.INFO,
-						"Blocked :" + url.getHost() + " from: "
-								+ clientToProxySocket.getInetAddress()
-								+ " contenct violation");
-				doActionIfBlocked();
-			}
+			filterContent(url.getHost());
 
 			/*
 			 * Log connection request
+			 * TODO: Better logging info is needed
 			 */
-			ProxyDataLogger.getInstance().log(Level.INFO, "Connect: ");
+			ProxyDataLogger.getInstance().log(Level.INFO, "Connect: " + url.getHost());
 
 			/*
-			 * Content isn't blocked and host isn't blocked, forward the
-			 * connection
+			 * Create a new socket from the proxy to the host.
 			 */
 			InetAddress serverAddress = InetAddress.getByName(url.getHost());
 			proxyToServerSocket = new Socket(serverAddress, 80);
+			
+			/*
+			 * Get the necessary streams from this new socket.
+			 */
 			outgoingOutputStream = proxyToServerSocket.getOutputStream();
 			outgoingInputStream = proxyToServerSocket.getInputStream();
+			
+			/*
+			 * Request from client is already read in.
+			 * Pass it onto the host it is trying to reach.
+			 */
+			outgoingOutputStream.write(byteBuffer, 0, byteBuffer.length);
+			outgoingOutputStream.flush();
+			
+			/*
+			 * While the host has data to receive, 
+			 * keep passing it back to the user
+			 */
 			while (proxyToServerSocket.isConnected()) {
 				
-				/*
-				 * 
-				 */
-				outgoingOutputStream.write(byteBuffer, 0, byteBuffer.length);
-				outgoingOutputStream.flush();
-
 				/*
 				 * Get response from server
 				 */
 				byteTmp = new byte[ProxySettings.getInstance().getMaxBuffer()];
 				size = outgoingInputStream.read(byteTmp, 0, byteTmp.length);
+				
+				/*
+				 * If size is <= 0 then there is no more data to pass back.
+				 * so return to normal flow.
+				 */
 				if (size <= 0) {
 					break;
 				}
 				byteBuffer = new byte[size];
 				System.arraycopy(byteTmp, 0, byteBuffer, 0, size);
-
-				String replyAsString = new String(byteBuffer);
-				System.out.println("DEBUG:\n" + replyAsString
-						+ "\nDEBUG FINISHED");
 
 				/*
 				 * Return response to user
@@ -197,7 +194,10 @@ public class ProxyWorkerThread extends Thread {
 				incomingOutputStream.write(byteBuffer, 0, byteBuffer.length);
 				incomingOutputStream.flush();
 			}
+			clientToProxySocket.close();
+			proxyToServerSocket.close();
 		} catch (IOException e) {
+			
 			/*
 			 * Something bad happened, log the problems occurrence and refuse
 			 * connection
@@ -207,6 +207,34 @@ public class ProxyWorkerThread extends Thread {
 			closeConnection();
 			e.printStackTrace();
 		}
+	}
+	
+	/*
+	 * Method called to filter for blocked content;
+	 */
+	private void filterContent(String host) {
+		if (filteringEnabled && containsBlockedContent()) {
+			ProxyDataLogger.getInstance().log(
+					Level.INFO,
+					"Blocked :" + host + " from: "
+							+ clientToProxySocket.getInetAddress()
+							+ " contenct violation");
+			doActionIfBlocked();
+		}		
+	}
+
+	/*
+	 * Method called to filter hosts
+	 */
+	private void filterHost(String host) {
+		if (filteringEnabled && isBlockedHost(host)) {
+			ProxyDataLogger.getInstance().log(
+					Level.INFO,
+					"Blocked :" + host + " from: "
+							+ clientToProxySocket.getInetAddress()
+							+ " blocked host");
+			doActionIfBlocked();
+		}		
 	}
 
 	/*
