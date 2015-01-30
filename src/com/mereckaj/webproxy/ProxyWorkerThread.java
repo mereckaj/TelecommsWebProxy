@@ -107,26 +107,21 @@ public class ProxyWorkerThread extends Thread {
 			 * Get the data that was contained inside the packet being
 			 * transmitted
 			 */
-//			charTmp = new char[ProxySettings.getInstance().getMaxBuffer()];
-//			int size = incomingBufferedReader.read(charTmp, 0, charTmp.length);
-//			char[] charBuffer = new char[size];
-//			System.arraycopy(charTmp, 0, charBuffer, 0, size);
-			
 			byteTmp = new byte[ProxySettings.getInstance().getMaxBuffer()];
 			int size = incomingInputStream.read(byteTmp, 0, byteTmp.length);
 			byte[] byteBuffer = new byte[size];
 			System.arraycopy(byteTmp, 0, byteBuffer, 0, size);
-			
+
 			/*
 			 * Create a string representation of the http header
 			 */
 			String payloadAsString = new String(byteBuffer);
-			
+
 			/*
 			 * Extract the url from payload
 			 */
 			URL url = new URL(Utils.getUrl(payloadAsString));
-			
+
 			/*
 			 * Check if filtering is enabled, if so Check if the host is
 			 * blocked,
@@ -140,9 +135,11 @@ public class ProxyWorkerThread extends Thread {
 				ProxyDataLogger.getInstance().log(
 						Level.INFO,
 						"Blocked :" + url.getHost() + " from: "
-								+ clientToProxySocket.getInetAddress() + " blocked host");
+								+ clientToProxySocket.getInetAddress()
+								+ " blocked host");
 				doActionIfBlocked();
 			}
+
 			/*
 			 * Host is not blocked so check the content for may violations it.
 			 * 
@@ -157,57 +154,56 @@ public class ProxyWorkerThread extends Thread {
 								+ " contenct violation");
 				doActionIfBlocked();
 			}
-			
+
 			/*
 			 * Log connection request
 			 */
-			ProxyDataLogger.getInstance().log(Level.INFO,"Connect: " );
-			
+			ProxyDataLogger.getInstance().log(Level.INFO, "Connect: ");
+
 			/*
 			 * Content isn't blocked and host isn't blocked, forward the
 			 * connection
 			 */
-			//TODO: Create socket
 			InetAddress serverAddress = InetAddress.getByName(url.getHost());
 			proxyToServerSocket = new Socket(serverAddress, 80);
+			outgoingOutputStream = proxyToServerSocket.getOutputStream();
+			outgoingInputStream = proxyToServerSocket.getInputStream();
+			while (proxyToServerSocket.isConnected()) {
+				
+				/*
+				 * 
+				 */
+				outgoingOutputStream.write(byteBuffer, 0, byteBuffer.length);
+				outgoingOutputStream.flush();
 
-			/*
-			 * Write this data to server socket
-			 */
-			proxyToServerSocket.getOutputStream().write(byteBuffer, 0, byteBuffer.length);
-			proxyToServerSocket.getOutputStream().flush();
-			
-			/*
-			 * Get response from server
-			 */
-			byteTmp = new byte[ProxySettings.getInstance().getMaxBuffer()];
-			size = proxyToServerSocket.getInputStream().read(byteTmp, 0, byteTmp.length);
-			byteBuffer = new byte[size];
-			System.arraycopy(byteTmp, 0, byteBuffer, 0, size);
-			
-			String replyAsString = new String(byteBuffer);
-			//TODO: ??? filter response
-			
-			/*
-			 * Return response to user
-			 */
-			clientToProxySocket.getOutputStream().write(byteBuffer,0,byteBuffer.length);
-			clientToProxySocket.getOutputStream().flush();
-			/*
-			 * Close sockets and data streams
-			 */
-			clientToProxySocket.close();
-			proxyToServerSocket.close();
+				/*
+				 * Get response from server
+				 */
+				byteTmp = new byte[ProxySettings.getInstance().getMaxBuffer()];
+				size = outgoingInputStream.read(byteTmp, 0, byteTmp.length);
+				if (size <= 0) {
+					break;
+				}
+				byteBuffer = new byte[size];
+				System.arraycopy(byteTmp, 0, byteBuffer, 0, size);
+
+				String replyAsString = new String(byteBuffer);
+				System.out.println("DEBUG:\n" + replyAsString
+						+ "\nDEBUG FINISHED");
+
+				/*
+				 * Return response to user
+				 */
+				incomingOutputStream.write(byteBuffer, 0, byteBuffer.length);
+				incomingOutputStream.flush();
+			}
 		} catch (IOException e) {
-
 			/*
 			 * Something bad happened, log the problems occurrence and refuse
 			 * connection
 			 */
-			ProxyLogger.getInstance().log(
-					Level.SEVERE,
-					"Could not get the input/output streams from the socket"
-							+ clientToProxySocket.hashCode());
+			ProxyLogger.getInstance().log(Level.SEVERE,
+					e.getMessage() + " " + clientToProxySocket.hashCode());
 			closeConnection();
 			e.printStackTrace();
 		}
