@@ -1,4 +1,6 @@
 package com.mereckaj.webproxy.gui;
+
+import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -12,6 +14,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
@@ -20,6 +23,8 @@ public class ProxyGUI {
 	private JFrame frmWebProxy;
 	final JFileChooser fc = new JFileChooser();
 	private boolean liveFeed;
+	private JTextField txtAbout;
+
 	/**
 	 * Launch the application.
 	 */
@@ -116,6 +121,11 @@ public class ProxyGUI {
 		menuBar.add(mnEdit);
 
 		JMenuItem mnConfig = new JMenuItem("Config");
+		mnConfig.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+					
+			}
+		});
 		mnEdit.add(mnConfig);
 
 		JMenu mnHelp = new JMenu("Help");
@@ -125,15 +135,21 @@ public class ProxyGUI {
 		mntmAbout.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFrame frmAbout = new JFrame("About HTTP Proxy");
-				int X = frmWebProxy.getWidth()/2;
-				int Y = frmWebProxy.getHeight()/2;
-				frmAbout.setBounds(X,Y, 400, 200);
+				int X = frmWebProxy.getWidth() / 2;
+				int Y = frmWebProxy.getHeight() / 2;
+				frmAbout.setBounds(X, Y, 300, 50);
 				frmAbout.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 				frmAbout.setResizable(false);
+				txtAbout = new JTextField();
+				txtAbout.setText("Created By Julius Mereckas for CS3031 -2015");
+				frmAbout.getContentPane().add(txtAbout, BorderLayout.CENTER);
+				txtAbout.setEditable(false);
+				txtAbout.setColumns(10);
 				frmAbout.setVisible(true);
 			}
 		});
 		mnHelp.add(mntmAbout);
+		frmWebProxy.getContentPane().setLayout(null);
+		
 	}
-
 }
