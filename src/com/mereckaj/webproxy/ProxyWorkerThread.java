@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.logging.Level;
 
 import com.mereckaj.webproxy.utils.HttpHeaderParser;
 
@@ -18,6 +17,13 @@ public class ProxyWorkerThread extends Thread {
 	 * HTTP port for the host server
 	 */
 	private static final int HTTP_PORT = 80;
+
+	/*
+	 * Variables used to count the total number of transfered
+	 * bytes by this current worker thread
+	 */
+	private int bytesReceivedFromHost;
+	private int bytesReceivedFromUser;
 	/*
 	 * User socket, passed in through the constructor
 	 */
@@ -68,6 +74,7 @@ public class ProxyWorkerThread extends Thread {
 	public ProxyWorkerThread(Socket s) {
 		this.clientToProxySocket = s;
 		filteringEnabled = ProxySettings.getInstance().isFilteringEnabled();
+		bytesReceivedFromHost = 0;
 	}
 
 	/*
@@ -80,110 +87,181 @@ public class ProxyWorkerThread extends Thread {
 		byte[] hostToUserData;
 		HttpHeaderParser header;
 		try {
-//			System.out.println("------------------------------------------");
-//			System.out.println("DEBUG START:");
-			// Set up incoming streams
+			/*
+			 *  Set up incoming streams
+			 */
 			incomingInputStream = clientToProxySocket.getInputStream();
 			incomingOutputStream = clientToProxySocket.getOutputStream();
 
-			// Read data passed to this proxy from a client
+			/*
+			 *  Read data passed to this proxy from a client
+			 */
 			userToHostData = getDataFromUserToRemoteHot();
-//			System.out.println("\tRead initial request");
+			if (userToHostData == null) {
+				return;
+			}
 
-			// Parse this data into a header
+			/*
+			 *  Parse this data into a header
+			 */
 			header = new HttpHeaderParser(userToHostData);
+			bytesReceivedFromUser += userToHostData.length;
 
-			//Filter hosts
+			/*
+			 *  Filter hosts
+			 */
 			filterHost(header.host);
-			
-			//Filter content
+
+			/*
+			 *  Filter content
+			 */
 			filterContent(userToHostData);
-			
-			// Create a new socket from proxy to host
+
+			/*
+			 *  Create a new socket from proxy to host
+			 */
 			proxyToServerSocket = new Socket(header.host, HTTP_PORT);
-//			System.out.println("\tConnecting to: " + header.host + "\n\t\t"
-//					+ header.url);
-			
-			// Set up outgoing streams
+			ProxyDataLogger.getInstance().log(ProxyLogLevel.CONNECT,
+					"Connected:" + header.host + " For: " + header.url);
+
+			/*
+			 *  Set up outgoing streams
+			 */
 			outgoingInputStream = proxyToServerSocket.getInputStream();
 			outgoingOutputStream = proxyToServerSocket.getOutputStream();
 
-			// Send initial request
+			/*
+			 *  Send initial request
+			 */
 			sendUserRequestToRemoteHost(userToHostData);
-//			System.out.println("\tSend initial request");
 
-			// Get initial reply
+			/*
+			 *  Get initial reply
+			 */
 			hostToUserData = getResponseFromRemoteHost();
-//			System.out.println("\tReceived intial reply");
+			bytesReceivedFromHost += hostToUserData.length;
 
-			// Pass initial return to user
+			/*
+			 *  Pass initial return to user
+			 */
 			returnResponseFromHostToUser(hostToUserData);
-//			System.out.println("\tReturned initial reply");
 
 			while (clientToProxySocket.isConnected()
 					&& proxyToServerSocket.isConnected()) {
 
 				if (outgoingInputStream.available() != 0) {
-					// Get reply
+					/*
+					 *  Get reply
+					 */
 					hostToUserData = getResponseFromRemoteHost();
-//					System.out.println("\tReceived reply");
+					bytesReceivedFromHost += hostToUserData.length;
 
-					// Pass return to user
+					/*
+					 *  Pass return to user
+					 */
 					returnResponseFromHostToUser(hostToUserData);
-//					System.out.println("\tReturned reply");
 				}
 				if (incomingInputStream.available() != 0) {
 
-					// Read data passed from a client
+					/*
+					 *  Read data passed from a client
+					 */
 					userToHostData = getDataFromUserToRemoteHot();
-//					System.out.println("\tRead request");
+					bytesReceivedFromUser += userToHostData.length;
 
-					// Send initial request
+					/*
+					 *  Send initial request
+					 */
 					sendUserRequestToRemoteHost(userToHostData);
-//					System.out.println("\tSent request");
-				} else {
-					System.out.println("No more data to pass to user");
 				}
+				
+				/*
+				 * If there is no more data to send from the user to host
+				 * or from host to user, put this thread to sleep for 100ms.
+				 */
 				if (incomingInputStream.available() == 0
 						&& outgoingInputStream.available() == 0) {
-//					System.out.println("Neither have data to return");
 					try {
 						Thread.sleep(100);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
+					
+					/*
+					 * Check again for traffic, if there is nothing left
+					 * Break out of the while loop.
+					 */
 					if (incomingInputStream.available() == 0
 							&& outgoingInputStream.available() == 0) {
-//						System.out.println("Wait finished, still nothing.");
 						break;
 					}
 				}
 			}
-//			System.out.println("Closing streams");
+			/*
+			 * Log the disconnect from the host
+			 */
+			ProxyDataLogger.getInstance().log(ProxyLogLevel.DISCONNECT,
+					"Disconnected:" + header.host + " For: " + header.url);
+			
+			/*
+			 * Log the usage statistics 
+			 */
+			ProxyDataLogger.getInstance().log(
+					ProxyLogLevel.USAGE,
+					"U2P:" + bytesReceivedFromUser + " " + "H2P:"
+							+ bytesReceivedFromHost);
+			
+			/*
+			 * Close both of the sockets.
+			 */
 			closeConnection();
-//			System.out.println("DEBUG FINISH");
-			return;
+			
+			/*
+			 * Close all of the data streams
+			 */
+			closeDataStreams();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
-
+	
+	/*
+	 * This method closes all of the output streams that were created 
+	 * for transfering data between the two sockets
+	 */
+	private void closeDataStreams() throws IOException {
+		incomingInputStream.close();
+		incomingOutputStream.close();
+		outgoingInputStream.close();
+		outgoingOutputStream.close();		
+	}
+	
+	/*
+	 * This methods returns the reply from the host
+	 * to the user.
+	 */
 	private void returnResponseFromHostToUser(byte[] byteBuffer)
 			throws IOException {
 		incomingOutputStream.write(byteBuffer, 0, byteBuffer.length);
 		incomingOutputStream.flush();
 	}
-
+	
+	/*
+	 * This method sends the request from the user to the remote host
+	 */
 	private void sendUserRequestToRemoteHost(byte[] byteBuffer)
 			throws IOException {
 		outgoingOutputStream.write(byteBuffer, 0, byteBuffer.length);
-		outgoingOutputStream.flush();
 	}
 
+	/*
+	 * This method retrieves the response from the remote host.
+	 */
 	private byte[] getResponseFromRemoteHost() throws IOException {
 		byte[] byteBuffer = null;
 		byte[] byteTmp = new byte[ProxySettings.getInstance().getMaxBuffer()];
 		int size = outgoingInputStream.read(byteTmp, 0, byteTmp.length);
+		
 		/*
 		 * If size is <= 0 then there is no more data to pass back. so return to
 		 * normal flow.
@@ -195,7 +273,10 @@ public class ProxyWorkerThread extends Thread {
 		System.arraycopy(byteTmp, 0, byteBuffer, 0, size);
 		return byteBuffer;
 	}
-
+	
+	/*
+	 * This method takes the data from the user
+	 */
 	private byte[] getDataFromUserToRemoteHot() throws IOException {
 		byte[] byteBuffer = null;
 		byte[] byteTmp = new byte[ProxySettings.getInstance().getMaxBuffer()];
@@ -214,7 +295,7 @@ public class ProxyWorkerThread extends Thread {
 	private void filterContent(byte[] data) {
 		if (filteringEnabled && containsBlockedContent(data)) {
 			ProxyDataLogger.getInstance().log(
-					Level.INFO,
+					ProxyLogLevel.INFO,
 					"Blocked :" + " from: "
 							+ clientToProxySocket.getInetAddress()
 							+ " contenct violation");
@@ -228,7 +309,7 @@ public class ProxyWorkerThread extends Thread {
 	private void filterHost(String host) {
 		if (filteringEnabled && isBlockedHost(host)) {
 			ProxyDataLogger.getInstance().log(
-					Level.INFO,
+					ProxyLogLevel.INFO,
 					"Blocked :" + host + " from: "
 							+ clientToProxySocket.getInetAddress()
 							+ " blocked host");

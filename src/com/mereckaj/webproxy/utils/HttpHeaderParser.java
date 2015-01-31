@@ -5,6 +5,7 @@ public class HttpHeaderParser {
 	public String host;
 
 	public HttpHeaderParser(byte[] data) {
+		//TODO: Fix this to be actual code. Not just hacked together
 		String s = new String(data);
 		String[] lines = s.split("\n");
 		for (int i = 0; i < lines.length; i++) {
