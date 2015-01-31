@@ -82,13 +82,13 @@ public class ProxyWorkerThread extends Thread {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 * 				
 	 * @see java.lang.Thread#run()
-	 */
+	 */		
 	public void run() {
 		byte[] userToHostData;
 		byte[] hostToUserData;
-		HttpHeaderParser header;
+		HttpHeaderParser header = null;
 		try {
 			/*
 			 * Set up incoming streams
@@ -127,25 +127,25 @@ public class ProxyWorkerThread extends Thread {
 			 * Which handles HTTP traffic
 			 */
 			if (header.getMethod() == HttpHeaderParser.METHOD.CONNECT) {
-				proxyToServerSocket = new Socket(header.getHost(), HTTPS_PORT);
-				ProxyDataLogger.getInstance().log(
-						ProxyLogLevel.CONNECT,
-						"Connected: " + header.getHost() + " For: "
-								+ header.getUrl() + " Port: " + HTTPS_PORT);
+				System.out.println("HTTPS REQUEST");
+				return;
+				// proxyToServerSocket = new Socket(header.getHost(),
+				// HTTPS_PORT);
+				// ProxyDataLogger.getInstance().log(
+				// ProxyLogLevel.CONNECT,
+				// "Connected: " + header.getHost() + " For: "
+				// + header.getUrl() + " Port: " + HTTPS_PORT);
+				// while(proxyToServerSocket.isConnected()){
+				// System.out.println("STILL CONNECTED");
+				// try {
+				// Thread.sleep(100);
+				// } catch (InterruptedException e) {
+				// e.printStackTrace();
+				// }
+				// }
+				// System.out.println("NO MORE");
 
-				/*
-				 * Set up outgoing streams
-				 */
-				outgoingInputStream = proxyToServerSocket.getInputStream();
-				outgoingOutputStream = proxyToServerSocket.getOutputStream();
-				debugCONNECT();
-				/*
-				 * Send initial request
-				 */
-				sendUserRequestToRemoteHost(userToHostData);
-				debugCONNECT();
 			} else {
-				System.out.println("." + header.getHost() +".");
 				proxyToServerSocket = new Socket(header.getHost(), HTTP_PORT);
 				ProxyDataLogger.getInstance().log(
 						ProxyLogLevel.CONNECT,
@@ -250,26 +250,37 @@ public class ProxyWorkerThread extends Thread {
 			 */
 			closeDataStreams();
 		} catch (IOException e) {
+			ProxyLogger.getInstance().log(ProxyLogLevel.EXCEPTION,
+					header.getHost() + ": " + e.getMessage());
 			e.printStackTrace();
 		}
 	}
-	
+
 	/*
-	 * Method called after initial send of user request to host:443
-	 * Check if client has data to return
-	 * Check if user has data to send
+	 * Method called after initial send of user request to host:443 Check if
+	 * client has data to return Check if user has data to send
 	 */
 	private void debugCONNECT() throws IOException {
-		System.out.println("IN_IN_STREAM_NULL: " + (incomingInputStream==null));
-		System.out.println("IN_OUT_STREAM_NULL: " + (incomingOutputStream==null));
-		System.out.println("OUT_IN_STREAM_NULL: " + (outgoingInputStream==null));
-		System.out.println("OUT_OUT_STREAM_NULL: " + (outgoingOutputStream==null));
-		System.out.println("U2P_SOCKET_CLOSED: " + clientToProxySocket.isClosed());
-		System.out.println("U2P_SOCKET_CONNECTED: " + clientToProxySocket.isConnected());
-		System.out.println("P2H_SOCKET_CLOSED: " + proxyToServerSocket.isClosed());
-		System.out.println("P2H_SOCKET_CONNECTED: " + proxyToServerSocket.isConnected());
-		System.out.println("CLIENT_DATA_READY: " + incomingInputStream.available());
-		System.out.println("HOST_DATA_READY: " + incomingInputStream.available());
+		System.out.println("IN_IN_STREAM_NULL: "
+				+ (incomingInputStream == null));
+		System.out.println("IN_OUT_STREAM_NULL: "
+				+ (incomingOutputStream == null));
+		System.out.println("OUT_IN_STREAM_NULL: "
+				+ (outgoingInputStream == null));
+		System.out.println("OUT_OUT_STREAM_NULL: "
+				+ (outgoingOutputStream == null));
+		System.out.println("U2P_SOCKET_CLOSED: "
+				+ clientToProxySocket.isClosed());
+		System.out.println("U2P_SOCKET_CONNECTED: "
+				+ clientToProxySocket.isConnected());
+		System.out.println("P2H_SOCKET_CLOSED: "
+				+ proxyToServerSocket.isClosed());
+		System.out.println("P2H_SOCKET_CONNECTED: "
+				+ proxyToServerSocket.isConnected());
+		System.out.println("CLIENT_DATA_READY: "
+				+ incomingInputStream.available());
+		System.out.println("HOST_DATA_READY: "
+				+ incomingInputStream.available());
 	}
 
 	/*
