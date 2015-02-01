@@ -1,0 +1,6 @@
+# This file contains blocked phrases
+# Each new line is threaded as a phrase which the program will try to match
+# Lines starting with # or \n are ignored
+# Proxy ignores case
+# This will even block HTML/CSS/JS words. Bug/Feature ? you decide.
+Spiderman

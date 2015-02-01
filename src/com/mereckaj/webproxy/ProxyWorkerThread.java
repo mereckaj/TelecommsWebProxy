@@ -3,9 +3,9 @@ package com.mereckaj.webproxy;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.Socket;
-import java.util.HashMap;
-import java.util.Map;
+import java.net.UnknownHostException;
 
 import com.mereckaj.webproxy.utils.HttpHeaderParser;
 
@@ -133,12 +133,16 @@ public class ProxyWorkerThread extends Thread {
 			/*
 			 * Filter hosts.
 			 */
-			filterHost(header.getHost());
+			if(filterHost(header.getHost())){
+				return;
+			}
 
 			/*
 			 * Filter content.
 			 */
-			filterContent(userToHostData);
+			if(filterContent(userToHostData)){
+				return;
+			}
 
 			/*
 			 * Create a new socket from proxy to host.
@@ -150,7 +154,7 @@ public class ProxyWorkerThread extends Thread {
 					ProxyLogLevel.CONNECT,
 					"Connected: " + header.getHost() + " For: "
 							+ header.getUrl() + " Port: " + HTTP_PORT);
-			
+
 			/*
 			 * Set up outgoing streams.
 			 */
@@ -167,7 +171,7 @@ public class ProxyWorkerThread extends Thread {
 			 */
 			hostToUserData = getResponseFromRemoteHost();
 			bytesReceivedFromHost += hostToUserData.length;
-			
+
 			/*
 			 * Pass initial return, from the host, to the user.
 			 */
@@ -177,7 +181,7 @@ public class ProxyWorkerThread extends Thread {
 					&& proxyToServerSocket.isConnected()) {
 
 				if (outgoingInputStream.available() != 0) {
-					
+
 					/*
 					 * If a reply is available, read it.
 					 */
@@ -192,11 +196,14 @@ public class ProxyWorkerThread extends Thread {
 				if (incomingInputStream.available() != 0) {
 
 					/*
-					 * If there is data passed from the client,
-					 * read it in.
+					 * If there is data passed from the client, read it in.
 					 */
 					userToHostData = getDataFromUserToRemoteHot();
 					bytesReceivedFromUser += userToHostData.length;
+					
+					if(filterContent(userToHostData)){
+						return;
+					}
 
 					/*
 					 * Send the data to the host.
@@ -226,7 +233,7 @@ public class ProxyWorkerThread extends Thread {
 					}
 				}
 			}
-			
+
 			/*
 			 * Log the disconnect from the host
 			 */
@@ -234,7 +241,7 @@ public class ProxyWorkerThread extends Thread {
 					ProxyLogLevel.DISCONNECT,
 					"Disconnected:" + header.getHost() + " For: "
 							+ header.getUrl());
-			
+
 			/*
 			 * Log the usage statistics
 			 */
@@ -252,7 +259,7 @@ public class ProxyWorkerThread extends Thread {
 			 * Close all of the data streams
 			 */
 			closeDataStreams();
-			
+
 		} catch (IOException e) {
 			ProxyLogger.getInstance().log(ProxyLogLevel.EXCEPTION,
 					header.getHost() + ": " + e.getMessage());
@@ -265,10 +272,13 @@ public class ProxyWorkerThread extends Thread {
 	 * transferring data between the two sockets
 	 */
 	private void closeDataStreams() throws IOException {
-		incomingInputStream.close();
-		incomingOutputStream.close();
-		outgoingInputStream.close();
-		outgoingOutputStream.close();
+		try{
+			incomingInputStream.close();
+			incomingOutputStream.close();
+			outgoingInputStream.close();
+			outgoingOutputStream.close();	
+		} catch (NullPointerException e ){
+		}
 	}
 
 	/*
@@ -326,29 +336,33 @@ public class ProxyWorkerThread extends Thread {
 	/*
 	 * Method called to filter for blocked content;
 	 */
-	private void filterContent(byte[] data) {
+	private boolean filterContent(byte[] data) {
 		if (filteringEnabled && containsBlockedContent(data)) {
 			ProxyDataLogger.getInstance().log(
 					ProxyLogLevel.INFO,
-					"Blocked :" + " from: "
+					"Blocked: from: "
 							+ userToProxySocket.getInetAddress()
 							+ " contenct violation");
 			doActionIfBlocked();
+			return true;
 		}
+		return false;
 	}
 
 	/*
 	 * Method called to filter hosts
 	 */
-	private void filterHost(String host) {
-		if (filteringEnabled && isBlockedHost(host)) {
+	private boolean filterHost(String host) {
+		if (filteringEnabled && isBlockedHostOrIP(host)) {
 			ProxyDataLogger.getInstance().log(
 					ProxyLogLevel.INFO,
 					"Blocked :" + host + " from: "
 							+ userToProxySocket.getInetAddress()
 							+ " blocked host");
 			doActionIfBlocked();
+			return true;
 		}
+		return false;
 	}
 
 	/*
@@ -359,14 +373,17 @@ public class ProxyWorkerThread extends Thread {
 		try {
 			userToProxySocket.close();
 			proxyToServerSocket.close();
+		} catch (NullPointerException e) {
 		} catch (IOException e) {
-			e.printStackTrace();
 		}
 	}
 
 	private boolean containsBlockedContent(byte[] data) {
-		// TODO check content
-		return false;
+		if(ProxyTrafficFilter.getInstance().containsBlockedKeyword(data)){
+			return true;
+		}else{
+			return false;
+		}
 	}
 
 	/*
@@ -374,9 +391,19 @@ public class ProxyWorkerThread extends Thread {
 	 * 
 	 * File containing blocked hosts is set in the .proxy_config file
 	 */
-	private boolean isBlockedHost(String host) {
-		// TODO: scan hosts
-		return false;
+	private boolean isBlockedHostOrIP(String host) {
+		try {
+			String ip = InetAddress.getByName(host).getHostAddress();
+			boolean hostIsBlocked = ProxyTrafficFilter.getInstance().isBlockedHost(host);
+			boolean ipIsBlocked = ProxyTrafficFilter.getInstance().isBlockedIP(ip);
+			if(hostIsBlocked || ipIsBlocked){
+				return true;
+			}else{
+				return false;
+			}
+		} catch (UnknownHostException e) {
+			return ProxyTrafficFilter.getInstance().isBlockedHost(host);
+		}
 	}
 
 	/*
@@ -386,7 +413,11 @@ public class ProxyWorkerThread extends Thread {
 	 * to reach is not allowed
 	 */
 	private void doActionIfBlocked() {
-		// TODO: Action
+		closeConnection();
+		try {
+			closeDataStreams();
+		} catch (IOException e) {
+		}
 	}
 
 }

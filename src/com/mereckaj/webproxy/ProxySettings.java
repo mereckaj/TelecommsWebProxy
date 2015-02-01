@@ -223,4 +223,5 @@ public class ProxySettings {
 	public int getMaxBuffer() {
 		return maxBufferSize;
 	}
+
 }
