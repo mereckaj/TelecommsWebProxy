@@ -15,7 +15,7 @@ LOGGING_ENABLED = 1
 # 0 = disabled
 # 1 = enabled
 # default = disabled
-FILTER_CONTENT = 0
+FILTER_CONTENT = 1
 
 #Path to log file
 PATH_LOG = .proxy_log
