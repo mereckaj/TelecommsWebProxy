@@ -276,7 +276,7 @@ public class ProxyGUI {
 				String s ="";
 				List<String> list = ProxyTrafficFilter.getInstance().getBlockedHostList();
 				for(int i = 0; i < list.size();i++){
-					s+=list.get(i)+"\n";
+					s+="[" + list.get(i)+"]";
 				}
 				txtInfoScreen.setText(s);
 			}
@@ -285,10 +285,30 @@ public class ProxyGUI {
 		frmWebProxy.getContentPane().add(btnListHost);
 
 		JButton btnListIP = new JButton("List");
+		btnListIP.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String s ="";
+				List<String> list = ProxyTrafficFilter.getInstance().getBlockedIpList();
+				for(int i = 0; i < list.size();i++){
+					s+="[" + list.get(i)+"]";
+				}
+				txtInfoScreen.setText(s);
+			}
+		});
 		btnListIP.setBounds(346, 49, 155, 25);
 		frmWebProxy.getContentPane().add(btnListIP);
 
 		JButton btnListPhrase = new JButton("List");
+		btnListPhrase.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String s ="";
+				List<String> list = ProxyTrafficFilter.getInstance().getBlockedPhraseList();
+				for(int i = 0; i < list.size();i++){
+					s+="[" + list.get(i)+"]";
+				}
+				txtInfoScreen.setText(s);
+			}
+		});
 		btnListPhrase.setBounds(346, 86, 155, 25);
 		frmWebProxy.getContentPane().add(btnListPhrase);
 
