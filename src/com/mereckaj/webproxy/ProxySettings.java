@@ -244,5 +244,14 @@ public class ProxySettings {
 	public byte[] getRefused(){
 		return refusedData;
 	}
+	public void setLogFilePath(String path) {
+		pathToLog = path;
+	}
+	public void setBlockedFilePath(String path) {
+		pathToBlockedHosts = path;
+	}
+	public void setFiltersFilePath(String path) {
+		pathToFilters = path;
+	}
 
 }
