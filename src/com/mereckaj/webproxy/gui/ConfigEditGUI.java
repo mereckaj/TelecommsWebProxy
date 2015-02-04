@@ -3,10 +3,12 @@ package com.mereckaj.webproxy.gui;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.text.Format;
 import java.text.NumberFormat;
 
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -15,12 +17,16 @@ import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import com.mereckaj.webproxy.ProxyLogLevel;
+import com.mereckaj.webproxy.ProxyLogger;
 import com.mereckaj.webproxy.ProxySettings;
 
 public class ConfigEditGUI {
 
 	private JFrame frame;
 	private JTextField txtError;
+	private JFileChooser fc = new JFileChooser(System.getProperty("user.dir"));
+	private JFormattedTextField maxBufferField;
 
 	/**
 	 * Launch the application.
@@ -36,6 +42,9 @@ public class ConfigEditGUI {
 				}
 			}
 		});
+	}
+	public JFrame getMainFrame(){
+		return frame;
 	}
 
 	/**
@@ -55,6 +64,9 @@ public class ConfigEditGUI {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
+		fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		fc.setFileHidingEnabled(false);
+		
 		frame = new JFrame();
 		frame.setBounds(100, 100, 450, 300);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -74,6 +86,22 @@ public class ConfigEditGUI {
 		frame.getContentPane().add(lblFiltering);
 
 		JButton btnLogFie = new JButton("Select");
+		btnLogFie.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				int returnVal = fc.showOpenDialog(null);
+
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+					File file = fc.getSelectedFile();
+					String oldPath = ProxySettings.getInstance().getPathToLog();
+					ProxySettings.getInstance().setLogFilePath(
+							file.getAbsolutePath());
+					ProxyLogger.getInstance().log(ProxyLogLevel.INFO,
+							"Changed log path from: " + oldPath + " to: " + file.getPath());
+				} else {
+					fc.setEnabled(false);
+				}
+			}
+		});
 		btnLogFie.setBounds(165, 110, 117, 25);
 		frame.getContentPane().add(btnLogFie);
 
@@ -86,29 +114,20 @@ public class ConfigEditGUI {
 		frame.getContentPane().add(btnBlockedHost);
 
 		final JFormattedTextField proxyPortField = new JFormattedTextField(
-				NumberFormat.getInstance());
+				(Format) null);
 		proxyPortField.setBounds(165, 12, 123, 19);
 		frame.getContentPane().add(proxyPortField);
 		proxyPortField.setText(new String(ProxySettings.getInstance()
 				.getProxyPort() + ""));
 
-		JButton btnSave = new JButton("Save");
-		btnSave.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				// TODO: SAVE SETTINGS
-				frame.dispose();
-			}
-		});
-		btnSave.setBounds(165, 236, 117, 25);
-		frame.getContentPane().add(btnSave);
 
-		JRadioButton rbtnLoggingEnabled = new JRadioButton("");
+		final JRadioButton rbtnLoggingEnabled = new JRadioButton("");
 		rbtnLoggingEnabled.setSelected(ProxySettings.getInstance()
 				.isLoggingEnabled());
 		rbtnLoggingEnabled.setBounds(165, 57, 149, 23);
 		frame.getContentPane().add(rbtnLoggingEnabled);
 
-		JRadioButton rbtnFilteringEnabled = new JRadioButton("");
+		final JRadioButton rbtnFilteringEnabled = new JRadioButton("");
 		rbtnFilteringEnabled.setSelected(ProxySettings.getInstance()
 				.isFilteringEnabled());
 		rbtnFilteringEnabled.setBounds(165, 80, 149, 23);
@@ -134,7 +153,7 @@ public class ConfigEditGUI {
 		lblBufferSize.setBounds(12, 39, 70, 15);
 		frame.getContentPane().add(lblBufferSize);
 
-		JFormattedTextField maxBufferField = new JFormattedTextField(
+		maxBufferField = new JFormattedTextField(
 				(Format) null);
 		maxBufferField.setText(new String(ProxySettings.getInstance()
 				.getMaxBuffer() + ""));
@@ -157,10 +176,36 @@ public class ConfigEditGUI {
 		frame.getContentPane().add(lblFilterFilePath);
 		lblFilterFilePath
 				.setText(ProxySettings.getInstance().getPathToFilter());
-
+		
+		JButton btnSave = new JButton("Save");
+		btnSave.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				boolean disp = false;
+				try{
+					int port = Integer.parseInt(proxyPortField.getText());
+					int bufSize = Integer.parseInt(maxBufferField.getText());
+					boolean log = rbtnLoggingEnabled.isSelected();
+					boolean filter = rbtnFilteringEnabled.isSelected();
+					ProxySettings.getInstance().setProxyPort(port);
+					ProxySettings.getInstance().setMaxBuffer(bufSize);
+					ProxySettings.getInstance().setLoggingEnabled(log);
+					ProxySettings.getInstance().setFilteringEnabled(filter);
+				}
+				catch (NumberFormatException error) {
+					txtError.setText("Error parsting port or buffer size" + error.getLocalizedMessage());
+				}
+				ProxySettings.getInstance();
+				if(disp==true){
+					frame.dispose();
+				}
+			}
+		});
+		btnSave.setBounds(165, 236, 117, 25);
+		frame.getContentPane().add(btnSave);
+		
 		txtError = new JTextField();
 		txtError.setEditable(false);
-		txtError.setBounds(12, 208, 424, 19);
+		txtError.setBounds(12, 197, 424, 30);
 		frame.getContentPane().add(txtError);
 		txtError.setColumns(10);
 	}
