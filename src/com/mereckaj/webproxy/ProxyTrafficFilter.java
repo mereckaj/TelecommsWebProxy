@@ -52,7 +52,7 @@ public class ProxyTrafficFilter {
 		String s = "";
 		try {
 			while ((s = filteredFile.readLine()) != null) {
-				if(!s.startsWith("#") && !s.isEmpty()){
+				if (!s.startsWith("#") && !s.isEmpty()) {
 					s.trim();
 					blockedPhraseList.add(s);
 				}
@@ -94,8 +94,8 @@ public class ProxyTrafficFilter {
 	}
 
 	public boolean isBlockedIP(String ip) {
-		for(int i = 0; i < blockedIpList.size();i++){
-			if(blockedIpList.get(i).equalsIgnoreCase(ip)){
+		for (int i = 0; i < blockedIpList.size(); i++) {
+			if (blockedIpList.get(i).equalsIgnoreCase(ip)) {
 				return true;
 			}
 		}
@@ -103,8 +103,8 @@ public class ProxyTrafficFilter {
 	}
 
 	public boolean isBlockedHost(String host) {
-		for(int i = 0; i < blockedHostList.size();i++){
-			if(blockedHostList.get(i).equalsIgnoreCase(host)){
+		for (int i = 0; i < blockedHostList.size(); i++) {
+			if (blockedHostList.get(i).equalsIgnoreCase(host)) {
 				return true;
 			}
 		}
@@ -113,8 +113,61 @@ public class ProxyTrafficFilter {
 
 	public boolean containsBlockedKeyword(byte[] data) {
 		String s = new String(data);
-		for(int i = 0; i < blockedPhraseList.size();i++){
-			if(s.contains(blockedPhraseList.get(i))){
+		for (int i = 0; i < blockedPhraseList.size(); i++) {
+			if (s.contains(blockedPhraseList.get(i))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public void addBlockedHost(String host) {
+		blockedHostList.add(host);
+		ProxyLogger.getInstance().log(ProxyLogLevel.INFO,
+				"Blocked host:" + host);
+	}
+
+	public void addBlockedIP(String ip) {
+		blockedIpList.add(ip);
+		ProxyLogger.getInstance().log(ProxyLogLevel.INFO, "Blocked IP:" + ip);
+	}
+
+	public void addBlockedPhrase(String phrase) {
+		blockedPhraseList.add(phrase);
+		ProxyLogger.getInstance().log(ProxyLogLevel.INFO,
+				"Blocked phrase:" + phrase);
+	}
+
+	public boolean removeBlockedHost(String host) {
+		for (int i = 0; i < blockedHostList.size(); i++) {
+			if (blockedHostList.get(i).equals(host)) {
+				blockedHostList.remove(i);
+				ProxyLogger.getInstance().log(ProxyLogLevel.INFO,
+						"Unblocked host:" + host);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean removeBlockedIP(String ip) {
+		for (int i = 0; i < blockedIpList.size(); i++) {
+			if (blockedIpList.get(i).equals(ip)) {
+				blockedIpList.remove(i);
+				ProxyLogger.getInstance().log(ProxyLogLevel.INFO,
+						"Unblocked ip:" + ip);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean removeBlockedPhrase(String phrase) {
+		for (int i = 0; i < blockedPhraseList.size(); i++) {
+			if (blockedPhraseList.get(i).equals(phrase)) {
+				blockedPhraseList.remove(i);
+				ProxyLogger.getInstance().log(ProxyLogLevel.INFO,
+						"Unblocked phrase:" + phrase);
 				return true;
 			}
 		}
