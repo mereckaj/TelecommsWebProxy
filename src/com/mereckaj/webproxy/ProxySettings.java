@@ -253,7 +253,7 @@ public class ProxySettings {
 	public void setFiltersFilePath(String path) {
 		pathToFilters = path;
 	}
-	public void setPort(int p){
+	public void setProxyPort(int p){
 		proxyPort  = p;
 	}
 	public void setMaxBuffer(int b){
@@ -265,5 +265,7 @@ public class ProxySettings {
 	public void setFilteringEnabled(boolean v){
 		filterEnabled = v;
 	}
-
+	public void onShutdown(){
+		//TODO: Write cfg to file
+	}
 }
