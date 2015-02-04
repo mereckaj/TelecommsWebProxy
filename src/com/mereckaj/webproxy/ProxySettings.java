@@ -2,6 +2,9 @@ package com.mereckaj.webproxy;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.logging.Level;
 
 import com.mereckaj.webproxy.utils.Utils;
@@ -31,6 +34,12 @@ public class ProxySettings {
 	// Static instance on this class, use getInstance() to get to it
 	private static ProxySettings instance = new ProxySettings();
 	
+	/*
+	 * Data that will be displayed if the host/ip is blocked by the proxy.
+	 * 
+	 */
+	private byte[] refusedData;
+	
 	private BufferedReader configFile;
 	/***
 	 * Constructor for this class, private because you should only access this class by
@@ -42,6 +51,14 @@ public class ProxySettings {
 	private ProxySettings() {
 		if (configFile == null) {
 			configFile = Utils.openOrCreateFile(CONFIG_FILE_PATH);
+		}
+		if(refusedData==null){
+			Path path = Paths.get("proxy_refused_connection.html");
+			try {
+				refusedData = Files.readAllBytes(path);
+			} catch (IOException e) {
+				System.out.println("Cant read refused file");
+			}
 		}
 	}
 	/**
@@ -222,6 +239,10 @@ public class ProxySettings {
 	}
 	public int getMaxBuffer() {
 		return maxBufferSize;
+	}
+	
+	public byte[] getRefused(){
+		return refusedData;
 	}
 
 }
