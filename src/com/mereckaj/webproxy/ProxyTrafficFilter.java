@@ -173,4 +173,13 @@ public class ProxyTrafficFilter {
 		}
 		return false;
 	}
+	public List<String> getBlockedIpList(){
+		return blockedIpList;
+	}
+	public List<String> getBlockedHostList(){
+		return blockedHostList;
+	}
+	public List<String> getBlockedPhraseList(){
+		return blockedPhraseList;
+	}
 }
