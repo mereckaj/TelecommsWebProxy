@@ -1,23 +1,21 @@
 package com.mereckaj.webproxy.gui;
 
 import java.awt.EventQueue;
-
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JButton;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.text.Format;
 import java.text.NumberFormat;
 
+import javax.swing.JButton;
 import javax.swing.JFormattedTextField;
-import javax.swing.text.NumberFormatter;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JRadioButton;
+import javax.swing.JTextField;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 import com.mereckaj.webproxy.ProxySettings;
-import java.text.Format;
-import javax.swing.JTextField;
 
 public class ConfigEditGUI {
 

@@ -173,13 +173,21 @@ public class ProxyTrafficFilter {
 		}
 		return false;
 	}
-	public List<String> getBlockedIpList(){
+
+	public List<String> getBlockedIpList() {
 		return blockedIpList;
 	}
-	public List<String> getBlockedHostList(){
+
+	public List<String> getBlockedHostList() {
 		return blockedHostList;
 	}
-	public List<String> getBlockedPhraseList(){
+
+	public List<String> getBlockedPhraseList() {
 		return blockedPhraseList;
+	}
+
+	public void writeFiles() {
+		// TODO: Method called when proxy is about to shut down, this method
+		// should write IP/HOST/PHRASE to files
 	}
 }
