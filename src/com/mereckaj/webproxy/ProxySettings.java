@@ -253,5 +253,17 @@ public class ProxySettings {
 	public void setFiltersFilePath(String path) {
 		pathToFilters = path;
 	}
+	public void setPort(int p){
+		proxyPort  = p;
+	}
+	public void setMaxBuffer(int b){
+		maxBufferSize = b;
+	}
+	public void setLoggingEnabled(boolean v){
+		loggingEnabled = v;
+	}
+	public void setFilteringEnabled(boolean v){
+		filterEnabled = v;
+	}
 
 }
