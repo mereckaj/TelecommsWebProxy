@@ -126,7 +126,8 @@ public class ProxyGUI {
 		JMenuItem mnConfig = new JMenuItem("Config");
 		mnConfig.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-
+				ConfigEditGUI cui = new ConfigEditGUI();
+				cui.getMainFrame().setVisible(true);
 			}
 		});
 		mnEdit.add(mnConfig);
