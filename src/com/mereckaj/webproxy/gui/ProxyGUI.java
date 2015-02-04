@@ -17,13 +17,17 @@ import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.JButton;
+
+import com.mereckaj.webproxy.ProxyTrafficFilter;
 
 public class ProxyGUI {
 
 	private JFrame frmWebProxy;
 	final JFileChooser fc = new JFileChooser();
-	private boolean liveFeed;
 	private JTextField txtAbout;
+	private JTextField txtInfoScreen;
+	private JTextField infoField;
 
 	/**
 	 * Launch the application.
@@ -51,7 +55,6 @@ public class ProxyGUI {
 	 * Create the application.
 	 */
 	public ProxyGUI() {
-		liveFeed = true;
 		initialize();
 	}
 
@@ -91,7 +94,6 @@ public class ProxyGUI {
 				int returnVal = fc.showOpenDialog(null);
 
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					liveFeed = false;
 					File file = fc.getSelectedFile();
 				} else {
 					fc.setEnabled(false);
@@ -104,8 +106,8 @@ public class ProxyGUI {
 		mntmClose.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				int confirmed = JOptionPane.showConfirmDialog(null,
-						"Are you sure you want to exit the program?",
-						"Exit Program Message Box", JOptionPane.YES_NO_OPTION);
+						"Are you sure you want to exis?", "Exit Program ?",
+						JOptionPane.YES_NO_OPTION);
 
 				if (confirmed == JOptionPane.YES_OPTION) {
 					frmWebProxy.dispose();
@@ -123,7 +125,7 @@ public class ProxyGUI {
 		JMenuItem mnConfig = new JMenuItem("Config");
 		mnConfig.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-					
+
 			}
 		});
 		mnEdit.add(mnConfig);
@@ -150,6 +152,150 @@ public class ProxyGUI {
 		});
 		mnHelp.add(mntmAbout);
 		frmWebProxy.getContentPane().setLayout(null);
-		
+
+		JButton btnBlockHost = new JButton("Block Host");
+		btnBlockHost.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String hostToBlock = infoField.getText();
+				infoField.setText("");
+				int choice = JOptionPane.showConfirmDialog(null,
+						"Are you sure you want block: " + hostToBlock,
+						"Block Host", JOptionPane.YES_NO_OPTION);
+				if (choice == JOptionPane.YES_OPTION) {
+					ProxyTrafficFilter.getInstance()
+							.addBlockedHost(hostToBlock);
+				}
+			}
+		});
+		btnBlockHost.setBounds(12, 12, 155, 25);
+		frmWebProxy.getContentPane().add(btnBlockHost);
+
+		JButton btnBlockip = new JButton("Block IP");
+		btnBlockip.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String ipToBlock = infoField.getText();
+				infoField.setText("");
+				int choice = JOptionPane.showConfirmDialog(null,
+						"Are you sure you want block: " + ipToBlock,
+						"Block IP", JOptionPane.YES_NO_OPTION);
+				if (choice == JOptionPane.YES_OPTION) {
+					ProxyTrafficFilter.getInstance()
+							.addBlockedIP(ipToBlock);
+				}
+			}
+		});
+		btnBlockip.setBounds(12, 49, 155, 25);
+		frmWebProxy.getContentPane().add(btnBlockip);
+
+		JButton btnBlockPhrase = new JButton("Block phrase");
+		btnBlockPhrase.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String phraseToBlock = infoField.getText();
+				phraseToBlock.trim();
+				infoField.setText("");
+				int choice = JOptionPane.showConfirmDialog(null,
+						"Are you sure you want block: " + phraseToBlock,
+						"Block phrase", JOptionPane.YES_NO_OPTION);
+				if (choice == JOptionPane.YES_OPTION) {
+					ProxyTrafficFilter.getInstance()
+							.addBlockedPhrase(phraseToBlock);
+				}
+			}
+		});
+		btnBlockPhrase.setBounds(12, 86, 155, 25);
+		frmWebProxy.getContentPane().add(btnBlockPhrase);
+
+		JButton btnUnblockHost = new JButton("Unblock Host");
+		btnUnblockHost.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String hostToUnblock = infoField.getText();
+				infoField.setText("");
+				int choice = JOptionPane.showConfirmDialog(null,
+						"Are you sure you want unblock: " + hostToUnblock,
+						"Unlock Host", JOptionPane.YES_NO_OPTION);
+				if (choice == JOptionPane.YES_OPTION) {
+					if(ProxyTrafficFilter.getInstance()
+							.removeBlockedHost(hostToUnblock)){
+						txtInfoScreen.setText("Unblocked: " + hostToUnblock);
+					}else{
+						txtInfoScreen.setText("Unable to unblock: " + hostToUnblock);						
+					}
+				}
+			}
+		});
+		btnUnblockHost.setBounds(179, 12, 155, 25);
+		frmWebProxy.getContentPane().add(btnUnblockHost);
+
+		JButton btnUnblockIp = new JButton("Unblock Ip");
+		btnUnblockIp.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String ipToUnblock = infoField.getText();
+				infoField.setText("");
+				int choice = JOptionPane.showConfirmDialog(null,
+						"Are you sure you want unblock: " + ipToUnblock,
+						"Unlock IP", JOptionPane.YES_NO_OPTION);
+				if (choice == JOptionPane.YES_OPTION) {
+					if(ProxyTrafficFilter.getInstance()
+							.removeBlockedIP(ipToUnblock)){
+						txtInfoScreen.setText("Unblocked: " + ipToUnblock);
+					}else{
+						txtInfoScreen.setText("Unable to unblock: " + ipToUnblock);						
+					}
+				}
+			}
+		});
+		btnUnblockIp.setBounds(179, 49, 155, 25);
+		frmWebProxy.getContentPane().add(btnUnblockIp);
+
+		JButton btnUnblockPhrase = new JButton("Unblock phrase");
+		btnUnblockPhrase.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String phraseToUnblock = infoField.getText();
+				phraseToUnblock.trim();
+				infoField.setText("");
+				int choice = JOptionPane.showConfirmDialog(null,
+						"Are you sure you want unblock: " + phraseToUnblock,
+						"Unlock phrase", JOptionPane.YES_NO_OPTION);
+				if (choice == JOptionPane.YES_OPTION) {
+					if(ProxyTrafficFilter.getInstance()
+							.removeBlockedPhrase(phraseToUnblock)){
+						txtInfoScreen.setText("Unblocked: " + phraseToUnblock);
+					}else{
+						txtInfoScreen.setText("Unable to unblock: " + phraseToUnblock);						
+					}
+				}
+			}
+		});
+		btnUnblockPhrase.setBounds(179, 86, 155, 25);
+		frmWebProxy.getContentPane().add(btnUnblockPhrase);
+
+		JButton btnListHost = new JButton("List");
+		btnListHost.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				
+			}
+		});
+		btnListHost.setBounds(346, 12, 155, 25);
+		frmWebProxy.getContentPane().add(btnListHost);
+
+		JButton btnListIP = new JButton("List");
+		btnListIP.setBounds(346, 49, 155, 25);
+		frmWebProxy.getContentPane().add(btnListIP);
+
+		JButton btnListPhrase = new JButton("List");
+		btnListPhrase.setBounds(346, 86, 155, 25);
+		frmWebProxy.getContentPane().add(btnListPhrase);
+
+		txtInfoScreen = new JTextField();
+		txtInfoScreen.setEditable(false);
+		txtInfoScreen.setBounds(513, 15, 273, 325);
+		frmWebProxy.getContentPane().add(txtInfoScreen);
+		txtInfoScreen.setColumns(10);
+
+		infoField = new JTextField();
+		infoField.setBounds(12, 123, 489, 32);
+		frmWebProxy.getContentPane().add(infoField);
+		infoField.setColumns(10);
+
 	}
 }
