@@ -7,7 +7,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.util.List;
 
+import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -17,7 +19,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.JButton;
 
 import com.mereckaj.webproxy.ProxyTrafficFilter;
 
@@ -272,7 +273,12 @@ public class ProxyGUI {
 		JButton btnListHost = new JButton("List");
 		btnListHost.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				
+				String s ="";
+				List<String> list = ProxyTrafficFilter.getInstance().getBlockedHostList();
+				for(int i = 0; i < list.size();i++){
+					s+=list.get(i)+"\n";
+				}
+				txtInfoScreen.setText(s);
 			}
 		});
 		btnListHost.setBounds(346, 12, 155, 25);
