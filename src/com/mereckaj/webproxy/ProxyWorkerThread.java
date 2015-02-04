@@ -119,7 +119,7 @@ public class ProxyWorkerThread extends Thread {
 			/*
 			 * Read data passed to this proxy from a user.
 			 */
-			userToHostData = getDataFromUserToRemoteHot();
+			userToHostData = getDataFromUserToRemoteHost();
 			if (userToHostData == null) {
 				return;
 			}
@@ -198,7 +198,7 @@ public class ProxyWorkerThread extends Thread {
 					/*
 					 * If there is data passed from the client, read it in.
 					 */
-					userToHostData = getDataFromUserToRemoteHot();
+					userToHostData = getDataFromUserToRemoteHost();
 					bytesReceivedFromUser += userToHostData.length;
 					
 					if(filterContent(userToHostData)){
@@ -321,7 +321,7 @@ public class ProxyWorkerThread extends Thread {
 	/*
 	 * This method takes the data from the user
 	 */
-	private byte[] getDataFromUserToRemoteHot() throws IOException {
+	private byte[] getDataFromUserToRemoteHost() throws IOException {
 		byte[] byteBuffer = null;
 		byte[] byteTmp = new byte[ProxySettings.getInstance().getMaxBuffer()];
 		int size = incomingInputStream.read(byteTmp, 0, byteTmp.length);
@@ -413,6 +413,12 @@ public class ProxyWorkerThread extends Thread {
 	 * to reach is not allowed
 	 */
 	private void doActionIfBlocked() {
+		byte[] data = ProxySettings.getInstance().getRefused();
+		try {
+			returnResponseFromHostToUser(data);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
 		closeConnection();
 		try {
 			closeDataStreams();
