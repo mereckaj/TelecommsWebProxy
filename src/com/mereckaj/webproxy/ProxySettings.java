@@ -235,9 +235,6 @@ public class ProxySettings {
 	 * @param v
 	 */
 	public void setRunning(boolean v){
-		if(v==false){
-			System.out.println("Shutting down the proxy");
-		}
 		running = v;
 	}
 	public int getMaxBuffer() {
