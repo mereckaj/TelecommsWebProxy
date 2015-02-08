@@ -8,9 +8,8 @@
 # Below is a list of blocked host names.
 # Each new blocked host must be entered on a new line
 [HOST]
-bing.com
-google.com
 
 # Below is a list of blocked IP's
 # Each new blocked ip must be entered on a new line
 [IP]
+

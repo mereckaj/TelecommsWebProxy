@@ -250,7 +250,7 @@ public class ProxySettings {
 	 */
 	public void setRunning(boolean v) {
 		if (v == false) {
-			onShutdown();
+			writeConfigHostIpPhraseDataToFile();
 		}
 		running = v;
 	}
@@ -294,7 +294,7 @@ public class ProxySettings {
 	/*
 	 * Writes a new config file. Good luck and have fun reading the code below.
 	 */
-	public void onShutdown() {
+	public void writeConfigHostIpPhraseDataToFile() {
 		writeConfigToFile();
 		writeBlockedHostIpToFile();
 		writeFilteredPhrasesToFile();

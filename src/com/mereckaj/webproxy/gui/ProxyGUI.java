@@ -21,7 +21,7 @@ import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-import com.mereckaj.webproxy.Main;
+import com.mereckaj.webproxy.HTTPProxy;
 import com.mereckaj.webproxy.ProxySettings;
 import com.mereckaj.webproxy.ProxyTrafficFilter;
 
@@ -34,7 +34,7 @@ public class ProxyGUI {
 	private JTextField infoField;
 	private Pattern patternIp;
 	private Matcher matcherIP;
-
+	static HTTPProxy proxyMainThread;
 	/**
 	 * Launch the application.
 	 */
@@ -55,7 +55,7 @@ public class ProxyGUI {
 				}
 			}
 		});
-		Main proxyMainThread = new Main();
+		proxyMainThread = new HTTPProxy();
 		proxyMainThread.run();
 	}
 
@@ -122,6 +122,7 @@ public class ProxyGUI {
 
 				if (confirmed == JOptionPane.YES_OPTION) {
 					frmWebProxy.dispose();
+					ProxySettings.getInstance().setRunning(false);
 				} else {
 					frmWebProxy
 							.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);

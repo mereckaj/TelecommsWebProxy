@@ -7,10 +7,11 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import com.mereckaj.webproxy.utils.HttpHeaderParser;
+import com.mereckaj.webproxy.utils.HttpRequestParser;
+import com.mereckaj.webproxy.utils.HttpResponseParser;
 
 /**
- * This {@link Thread} object gets created each time {@link Main} gets a request
+ * This {@link Thread} object gets created each time {@link HTTPProxy} gets a request
  * from a user to connect to some host.
  * 
  * Some info about the naming in the comments:
@@ -78,7 +79,7 @@ public class ProxyWorkerThread extends Thread {
 	 * Constructor for this class.
 	 * 
 	 * @param s
-	 *            = {@link Socket} socket which is received from {@link Main}
+	 *            = {@link Socket} socket which is received from {@link HTTPProxy}
 	 */
 	public ProxyWorkerThread(Socket s) {
 		this.userToProxySocket = s;
@@ -106,7 +107,8 @@ public class ProxyWorkerThread extends Thread {
 		 * header will contain the info about what type of connection and where
 		 * to the user wants to connect to.
 		 */
-		HttpHeaderParser header = null;
+		HttpRequestParser httpRequestHeader = null;
+		HttpResponseParser httpResponseHeader = null;
 
 		try {
 
@@ -127,13 +129,13 @@ public class ProxyWorkerThread extends Thread {
 			/*
 			 * Parse data give by the user into a header.
 			 */
-			header = new HttpHeaderParser(userToHostData);
+			httpRequestHeader = new HttpRequestParser(userToHostData);
 			bytesReceivedFromUser += userToHostData.length;
 
 			/*
 			 * Filter hosts.
 			 */
-			if(filterHost(header.getHost())){
+			if(filterHost(httpRequestHeader.getHost())){
 				return;
 			}
 
@@ -149,11 +151,11 @@ public class ProxyWorkerThread extends Thread {
 			 * 
 			 * If the header method is CONNECT, program will not work.
 			 */
-			proxyToServerSocket = new Socket(header.getHost(), HTTP_PORT);
+			proxyToServerSocket = new Socket(httpRequestHeader.getHost(), HTTP_PORT);
 			ProxyDataLogger.getInstance().log(
 					ProxyLogLevel.CONNECT,
-					"Connected: " + header.getHost() + " For: "
-							+ header.getUrl() + " Port: " + HTTP_PORT);
+					"Connected: " + httpRequestHeader.getHost() + " For: "
+							+ httpRequestHeader.getUrl() + " Port: " + HTTP_PORT);
 
 			/*
 			 * Set up outgoing streams.
@@ -171,6 +173,11 @@ public class ProxyWorkerThread extends Thread {
 			 */
 			hostToUserData = getResponseFromRemoteHost();
 			bytesReceivedFromHost += hostToUserData.length;
+			
+			/*
+			 * Parse the response.
+			 */
+			httpResponseHeader = new HttpResponseParser(hostToUserData);
 
 			/*
 			 * Pass initial return, from the host, to the user.
@@ -243,7 +250,7 @@ public class ProxyWorkerThread extends Thread {
 			 */
 			ProxyDataLogger.getInstance().log(
 					ProxyLogLevel.DISCONNECT,
-					"Disconnected:" + header.getHost());
+					"Disconnected:" + httpRequestHeader.getHost());
 
 			/*
 			 * Log the usage statistics
@@ -265,7 +272,7 @@ public class ProxyWorkerThread extends Thread {
 
 		} catch (IOException e) {
 			ProxyLogger.getInstance().log(ProxyLogLevel.EXCEPTION,
-					header.getHost() + ": " + e.getMessage());
+					httpRequestHeader.getHost() + ": " + e.getMessage());
 			e.printStackTrace();
 		}
 	}

@@ -175,6 +175,7 @@ public class ConfigEditGUI {
 					ProxySettings.getInstance().setMaxBuffer(bufSize);
 					ProxySettings.getInstance().setLoggingEnabled(log);
 					ProxySettings.getInstance().setFilteringEnabled(filter);
+					ProxySettings.getInstance().writeConfigHostIpPhraseDataToFile();
 				}
 				catch (NumberFormatException error) {
 					txtError.setText("Error parsting port or buffer size" + error.getLocalizedMessage());

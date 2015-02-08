@@ -8,7 +8,7 @@ PROXY_PORT = 4000
 #Management engine will not do anything
 # 0 = disabled
 # 1 = enabled
-LOGGING_ENABLED = 1
+LOGGING_ENABLED = 0
 
 #If enabled the content will be filtered for any phrasesin the .proxy_filter file
 #and for any ip's in .proxy_blocked
