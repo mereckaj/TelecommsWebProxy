@@ -10,7 +10,10 @@ import com.mereckaj.webproxy.utils.Utils;
  * Starting function of the proxy, class will call the main
  * method which initializes the proxy.
  */
-public class Main {
+public class Main extends Thread{
+	public Main(){
+		
+	}
 	
 	/*
 	 * Main socket to which all of the users will connect.
@@ -28,7 +31,7 @@ public class Main {
 	/*
 	 * main method that initializes and launches the proxy
 	 */
-	public static void main(String[] args) {
+	public void run() {
 
 		/*
 		 *  Read in the port specified by the config file
