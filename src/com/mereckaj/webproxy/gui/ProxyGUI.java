@@ -6,8 +6,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.File;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -20,6 +21,8 @@ import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import com.mereckaj.webproxy.Main;
+import com.mereckaj.webproxy.ProxySettings;
 import com.mereckaj.webproxy.ProxyTrafficFilter;
 
 public class ProxyGUI {
@@ -29,6 +32,8 @@ public class ProxyGUI {
 	private JTextField txtAbout;
 	private JTextField txtInfoScreen;
 	private JTextField infoField;
+	private Pattern patternIp;
+	private Matcher matcherIP;
 
 	/**
 	 * Launch the application.
@@ -50,6 +55,8 @@ public class ProxyGUI {
 				}
 			}
 		});
+		Main proxyMainThread = new Main();
+		proxyMainThread.run();
 	}
 
 	/**
@@ -63,15 +70,18 @@ public class ProxyGUI {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
+		patternIp = Pattern
+				.compile("^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])$");
 		frmWebProxy = new JFrame();
 		frmWebProxy.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
 				int confirmed = JOptionPane.showConfirmDialog(null,
-						"Are you sure you want to exit the program?",
+						"Are you sure you want to exit the program?\nThis will turn off the proxy.",
 						"Exit Program Message Box", JOptionPane.YES_NO_OPTION);
 
 				if (confirmed == JOptionPane.YES_OPTION) {
 					frmWebProxy.dispose();
+					ProxySettings.getInstance().setRunning(false);
 				} else {
 					frmWebProxy
 							.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -95,7 +105,7 @@ public class ProxyGUI {
 				int returnVal = fc.showOpenDialog(null);
 
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					File file = fc.getSelectedFile();
+					fc.getSelectedFile();
 				} else {
 					fc.setEnabled(false);
 				}
@@ -128,6 +138,8 @@ public class ProxyGUI {
 			public void actionPerformed(ActionEvent e) {
 				ConfigEditGUI cui = new ConfigEditGUI();
 				cui.getMainFrame().setVisible(true);
+				cui.getMainFrame().setDefaultCloseOperation(
+						JFrame.HIDE_ON_CLOSE);
 			}
 		});
 		mnEdit.add(mnConfig);
@@ -159,13 +171,17 @@ public class ProxyGUI {
 		btnBlockHost.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String hostToBlock = infoField.getText();
-				infoField.setText("");
-				int choice = JOptionPane.showConfirmDialog(null,
-						"Are you sure you want block: " + hostToBlock,
-						"Block Host", JOptionPane.YES_NO_OPTION);
-				if (choice == JOptionPane.YES_OPTION) {
-					ProxyTrafficFilter.getInstance()
-							.addBlockedHost(hostToBlock);
+				if (!hostToBlock.isEmpty()) {
+					infoField.setText("");
+					int choice = JOptionPane.showConfirmDialog(null,
+							"Are you sure you want block: " + hostToBlock,
+							"Block Host", JOptionPane.YES_NO_OPTION);
+					if (choice == JOptionPane.YES_OPTION) {
+						ProxyTrafficFilter.getInstance().addBlockedHost(
+								hostToBlock);
+					}
+				} else {
+					txtInfoScreen.setText("You need to enter a host.");
 				}
 			}
 		});
@@ -176,13 +192,23 @@ public class ProxyGUI {
 		btnBlockip.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String ipToBlock = infoField.getText();
-				infoField.setText("");
-				int choice = JOptionPane.showConfirmDialog(null,
-						"Are you sure you want block: " + ipToBlock,
-						"Block IP", JOptionPane.YES_NO_OPTION);
-				if (choice == JOptionPane.YES_OPTION) {
-					ProxyTrafficFilter.getInstance()
-							.addBlockedIP(ipToBlock);
+				if (!ipToBlock.isEmpty()) {
+					infoField.setText("");
+					int choice = JOptionPane.showConfirmDialog(null,
+							"Are you sure you want block: " + ipToBlock,
+							"Block IP", JOptionPane.YES_NO_OPTION);
+					if (choice == JOptionPane.YES_OPTION) {
+						matcherIP = patternIp.matcher(ipToBlock);
+						if (matcherIP.matches()) {
+							txtInfoScreen.setText("");
+							ProxyTrafficFilter.getInstance().addBlockedIP(
+									ipToBlock);
+						} else {
+							txtInfoScreen.setText("Not valid ip");
+						}
+					}
+				} else {
+					txtInfoScreen.setText("You need to enter an IP.");
 				}
 			}
 		});
@@ -193,14 +219,18 @@ public class ProxyGUI {
 		btnBlockPhrase.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String phraseToBlock = infoField.getText();
-				phraseToBlock.trim();
-				infoField.setText("");
-				int choice = JOptionPane.showConfirmDialog(null,
-						"Are you sure you want block: " + phraseToBlock,
-						"Block phrase", JOptionPane.YES_NO_OPTION);
-				if (choice == JOptionPane.YES_OPTION) {
-					ProxyTrafficFilter.getInstance()
-							.addBlockedPhrase(phraseToBlock);
+				if (!phraseToBlock.isEmpty()) {
+					phraseToBlock.trim();
+					infoField.setText("");
+					int choice = JOptionPane.showConfirmDialog(null,
+							"Are you sure you want block: " + phraseToBlock,
+							"Block phrase", JOptionPane.YES_NO_OPTION);
+					if (choice == JOptionPane.YES_OPTION) {
+						ProxyTrafficFilter.getInstance().addBlockedPhrase(
+								phraseToBlock);
+					}
+				} else {
+					txtInfoScreen.setText("You need to enter a phrase.");
 				}
 			}
 		});
@@ -216,11 +246,12 @@ public class ProxyGUI {
 						"Are you sure you want unblock: " + hostToUnblock,
 						"Unlock Host", JOptionPane.YES_NO_OPTION);
 				if (choice == JOptionPane.YES_OPTION) {
-					if(ProxyTrafficFilter.getInstance()
-							.removeBlockedHost(hostToUnblock)){
+					if (ProxyTrafficFilter.getInstance().removeBlockedHost(
+							hostToUnblock)) {
 						txtInfoScreen.setText("Unblocked: " + hostToUnblock);
-					}else{
-						txtInfoScreen.setText("Unable to unblock: " + hostToUnblock);						
+					} else {
+						txtInfoScreen.setText("Unable to unblock: "
+								+ hostToUnblock);
 					}
 				}
 			}
@@ -237,11 +268,12 @@ public class ProxyGUI {
 						"Are you sure you want unblock: " + ipToUnblock,
 						"Unlock IP", JOptionPane.YES_NO_OPTION);
 				if (choice == JOptionPane.YES_OPTION) {
-					if(ProxyTrafficFilter.getInstance()
-							.removeBlockedIP(ipToUnblock)){
+					if (ProxyTrafficFilter.getInstance().removeBlockedIP(
+							ipToUnblock)) {
 						txtInfoScreen.setText("Unblocked: " + ipToUnblock);
-					}else{
-						txtInfoScreen.setText("Unable to unblock: " + ipToUnblock);						
+					} else {
+						txtInfoScreen.setText("Unable to unblock: "
+								+ ipToUnblock);
 					}
 				}
 			}
@@ -259,11 +291,12 @@ public class ProxyGUI {
 						"Are you sure you want unblock: " + phraseToUnblock,
 						"Unlock phrase", JOptionPane.YES_NO_OPTION);
 				if (choice == JOptionPane.YES_OPTION) {
-					if(ProxyTrafficFilter.getInstance()
-							.removeBlockedPhrase(phraseToUnblock)){
+					if (ProxyTrafficFilter.getInstance().removeBlockedPhrase(
+							phraseToUnblock)) {
 						txtInfoScreen.setText("Unblocked: " + phraseToUnblock);
-					}else{
-						txtInfoScreen.setText("Unable to unblock: " + phraseToUnblock);						
+					} else {
+						txtInfoScreen.setText("Unable to unblock: "
+								+ phraseToUnblock);
 					}
 				}
 			}
@@ -274,10 +307,11 @@ public class ProxyGUI {
 		JButton btnListHost = new JButton("List");
 		btnListHost.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				String s ="";
-				List<String> list = ProxyTrafficFilter.getInstance().getBlockedHostList();
-				for(int i = 0; i < list.size();i++){
-					s+="[" + list.get(i)+"]";
+				String s = "";
+				List<String> list = ProxyTrafficFilter.getInstance()
+						.getBlockedHostList();
+				for (int i = 0; i < list.size(); i++) {
+					s += "[" + list.get(i) + "]";
 				}
 				txtInfoScreen.setText(s);
 			}
@@ -288,10 +322,11 @@ public class ProxyGUI {
 		JButton btnListIP = new JButton("List");
 		btnListIP.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				String s ="";
-				List<String> list = ProxyTrafficFilter.getInstance().getBlockedIpList();
-				for(int i = 0; i < list.size();i++){
-					s+="[" + list.get(i)+"]";
+				String s = "";
+				List<String> list = ProxyTrafficFilter.getInstance()
+						.getBlockedIpList();
+				for (int i = 0; i < list.size(); i++) {
+					s += "[" + list.get(i) + "]";
 				}
 				txtInfoScreen.setText(s);
 			}
@@ -302,10 +337,11 @@ public class ProxyGUI {
 		JButton btnListPhrase = new JButton("List");
 		btnListPhrase.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				String s ="";
-				List<String> list = ProxyTrafficFilter.getInstance().getBlockedPhraseList();
-				for(int i = 0; i < list.size();i++){
-					s+="[" + list.get(i)+"]";
+				String s = "";
+				List<String> list = ProxyTrafficFilter.getInstance()
+						.getBlockedPhraseList();
+				for (int i = 0; i < list.size(); i++) {
+					s += "[" + list.get(i) + "]";
 				}
 				txtInfoScreen.setText(s);
 			}

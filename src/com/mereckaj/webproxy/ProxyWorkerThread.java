@@ -193,7 +193,7 @@ public class ProxyWorkerThread extends Thread {
 					 */
 					returnResponseFromHostToUser(hostToUserData);
 				}
-				if (incomingInputStream.available() != 0) {
+				if (incomingInputStream.available() != 0) {	
 
 					/*
 					 * If there is data passed from the client, read it in.
@@ -218,7 +218,7 @@ public class ProxyWorkerThread extends Thread {
 				if (incomingInputStream.available() == 0
 						&& outgoingInputStream.available() == 0) {
 					try {
-						Thread.sleep(100);
+						Thread.sleep(500);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -232,6 +232,10 @@ public class ProxyWorkerThread extends Thread {
 						break;
 					}
 				}
+//				if(proxyToServerSocket.isClosed()||userToProxySocket.isClosed()){
+//					System.out.println("Closed: " + header.getHost());
+//					break;
+//				}
 			}
 
 			/*
@@ -239,8 +243,7 @@ public class ProxyWorkerThread extends Thread {
 			 */
 			ProxyDataLogger.getInstance().log(
 					ProxyLogLevel.DISCONNECT,
-					"Disconnected:" + header.getHost() + " For: "
-							+ header.getUrl());
+					"Disconnected:" + header.getHost());
 
 			/*
 			 * Log the usage statistics

@@ -1,11 +1,9 @@
 package com.mereckaj.webproxy.gui;
 
-import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.text.Format;
-import java.text.NumberFormat;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -31,18 +29,6 @@ public class ConfigEditGUI {
 	/**
 	 * Launch the application.
 	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					ConfigEditGUI window = new ConfigEditGUI();
-					window.frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
 	public JFrame getMainFrame(){
 		return frame;
 	}
@@ -180,7 +166,6 @@ public class ConfigEditGUI {
 		JButton btnSave = new JButton("Save");
 		btnSave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				boolean disp = false;
 				try{
 					int port = Integer.parseInt(proxyPortField.getText());
 					int bufSize = Integer.parseInt(maxBufferField.getText());
@@ -193,10 +178,6 @@ public class ConfigEditGUI {
 				}
 				catch (NumberFormatException error) {
 					txtError.setText("Error parsting port or buffer size" + error.getLocalizedMessage());
-				}
-				ProxySettings.getInstance();
-				if(disp==true){
-					frame.dispose();
 				}
 			}
 		});
