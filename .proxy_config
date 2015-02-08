@@ -4,13 +4,13 @@
 #Set the port to which the proxy will bind
 PROXY_PORT = 4000
 
-#If logging is disabled no writes to log will made
+#If logging is disabled no writes to log will made 
 #Management engine will not do anything
 # 0 = disabled
 # 1 = enabled
 LOGGING_ENABLED = 1
 
-#If enabled the content will be filtered for any phrases in the .proxy_filter file
+#If enabled the content will be filtered for any phrasesin the .proxy_filter file
 #and for any ip's in .proxy_blocked
 # 0 = disabled
 # 1 = enabled
@@ -23,8 +23,9 @@ PATH_LOG = .proxy_log
 #Path to filters file
 PATH_FILTERS = .proxy_filters
 
-#Path to blocked ip's list
+#Path to blocked ip/host file
 PATH_BLOCKED = .proxy_blocked
 
 #Maximum size for the buffer in each thread
 MAX_BUFFER_SIZE = 65536
+

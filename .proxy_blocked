@@ -2,15 +2,15 @@
 # and blocked IP's.
 # Hosts and IP's must be in the correct block,
 # denoted by [HOST] or [IP].
-# Removal of [HOST] or [IP] might cause undefined behaviour 
+# Removal of [HOST] or [IP] might cause undefined behaviour
 # by the program.
 
 # Below is a list of blocked host names.
 # Each new blocked host must be entered on a new line
 [HOST]
 bing.com
+google.com
 
-# Below is a list of blocked IP's 
+# Below is a list of blocked IP's
 # Each new blocked ip must be entered on a new line
 [IP]
-192.168.1.11
