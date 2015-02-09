@@ -12,6 +12,8 @@ public class ProxyLogLevel extends Level {
 			Level.SEVERE.intValue() + 3);
 	public static final Level EXCEPTION = new ProxyLogLevel("EXCEPTION",
 			Level.SEVERE.intValue() + 4);
+	public static final Level CACHE_ERROR = new ProxyLogLevel("CACHE_ERROR",
+			Level.SEVERE.intValue() + 5);
 
 	public ProxyLogLevel(String name, int value) {
 		super(name, value);
