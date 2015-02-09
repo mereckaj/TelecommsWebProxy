@@ -4,11 +4,14 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.mereckaj.webproxy.CacheInfoObject;
+
 public class HttpResponseParser {
 
 	private String protocol;
 	private String method;
 	private Map<String, String> headerFields;
+	private byte[] headerData;
 
 	public HttpResponseParser(byte[] data) {
 		headerFields = new HashMap<String, String>();
@@ -21,19 +24,30 @@ public class HttpResponseParser {
 			if (!lines[i].isEmpty()) {
 				String[] keyValue = lines[i].split(":");
 				if (keyValue.length == 2) {
-					headerFields.put(keyValue[0], keyValue[1]);
+					headerFields.put(keyValue[0].trim(), keyValue[1]);
 				} else {
-					try{
+					try {
 						int n = lines[i].indexOf(':');
 						String key = lines[i].substring(0, n);
 						String value = lines[i].substring(n + 1);
 						headerFields.put(key, value);
-					} catch(StringIndexOutOfBoundsException e){
+					} catch (StringIndexOutOfBoundsException e) {
 						e.printStackTrace();
 					}
 				}
 			} else {
 				break;
+			}
+		}
+		for (int i = 0; i < data.length; i++) {
+			try {
+				if (data[i] == '\n' && data[i + 1] == '\r'
+						&& data[i + 2] == '\n') {
+					headerData = new byte[data.length - (i + 3)];
+					System.arraycopy(data, (i + 3), headerData, 0, data.length
+							- (i + 3));
+				}
+			} catch (ArrayIndexOutOfBoundsException e) {
 			}
 		}
 	}
@@ -46,8 +60,9 @@ public class HttpResponseParser {
 			System.out.println(keys[i] + "\n\t" + headerFields.get(keys[i]));
 		}
 	}
-	private void parseMethod(String method){
-		
+
+	private void parseMethod(String method) {
+
 	}
 
 	/*
@@ -75,5 +90,34 @@ public class HttpResponseParser {
 
 	public void setStatus(String status) {
 		this.method = status;
+	}
+
+	public CacheInfoObject getCacheInfo() {
+		boolean cacheControl = headerFields.containsKey("Cache-Control");
+		String cc = headerFields.get("Cache-Control");
+		int maxAge = -1;
+		boolean isPrivate = false;
+		boolean isPublic = false;
+		boolean noTransform = false;
+		if (cacheControl) {
+			if (!cc.contains("no-cache")) {
+				String[] settings = cc.split(",");
+				for (int i = 0; i < settings.length; i++) {
+					if (settings[i].contains("max-age")) {
+						maxAge = Integer.parseInt(settings[i]
+								.substring(settings[i].indexOf("=")+1));
+					} else if (settings[i].contains("private")) {
+						isPrivate = true;
+					} else if (settings[i].contains("public")) {
+						isPublic = true;
+					} else if (settings[i].contains("no-transform")) {
+						noTransform = true;
+					} else {
+						System.out.println("\t\t" + settings[i]);
+					}
+				}
+			}
+		}
+		return null;
 	}
 }
