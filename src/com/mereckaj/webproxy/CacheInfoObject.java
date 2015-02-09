@@ -8,7 +8,8 @@ public class CacheInfoObject {
 	private int maxAge;
 	private String date;
 	private byte[] data;
-	public CacheInfoObject(){
+
+	public CacheInfoObject() {
 		setNoCache(false);
 		setPrivate(false);
 		setPublic(false);
@@ -17,49 +18,72 @@ public class CacheInfoObject {
 		setDate("");
 		setData(null);
 	}
-	public boolean hasExpired(String date){
+
+	public boolean hasExpired(String date) {
 		return false;
 	}
+
 	public boolean isNoCache() {
 		return noCache;
 	}
+
 	public void setNoCache(boolean noCache) {
 		this.noCache = noCache;
 	}
+
 	public boolean isPrivate() {
 		return isPrivate;
 	}
+
 	public void setPrivate(boolean isPrivate) {
 		this.isPrivate = isPrivate;
 	}
+
 	public boolean isPublic() {
 		return isPublic;
 	}
+
 	public void setPublic(boolean isPublic) {
 		this.isPublic = isPublic;
 	}
+
 	public boolean isNoModify() {
 		return noModify;
 	}
+
 	public void setNoModify(boolean noModify) {
 		this.noModify = noModify;
 	}
+
 	public int getMaxAge() {
 		return maxAge;
 	}
+
 	public void setMaxAge(int maxAge) {
 		this.maxAge = maxAge;
 	}
+
 	public String getDate() {
 		return date;
 	}
+
 	public void setDate(String date) {
 		this.date = date;
 	}
+
 	public byte[] getData() {
 		return data;
 	}
+
 	public void setData(byte[] data) {
 		this.data = data;
+	}
+	public void appendData(byte[] data){
+		if(data!=null){
+			byte[] newData = new byte[this.data.length + data.length];
+			System.arraycopy(this.data, 0, newData, 0, this.data.length);
+			System.arraycopy(data, 0, newData, this.data.length, data.length);
+			this.data = newData;
+		}
 	}
 }
