@@ -109,7 +109,6 @@ public class ProxyWorkerThread extends Thread {
 		 */
 		HttpRequestParser httpRequestHeader = null;
 		HttpResponseParser httpResponseHeader = null;
-
 		try {
 
 			/*
@@ -178,7 +177,6 @@ public class ProxyWorkerThread extends Thread {
 			 * Parse the response.
 			 */
 			httpResponseHeader = new HttpResponseParser(hostToUserData);
-
 			/*
 			 * Pass initial return, from the host, to the user.
 			 */
@@ -225,7 +223,7 @@ public class ProxyWorkerThread extends Thread {
 				if (incomingInputStream.available() == 0
 						&& outgoingInputStream.available() == 0) {
 					try {
-						Thread.sleep(500);
+						Thread.sleep(100);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -239,10 +237,6 @@ public class ProxyWorkerThread extends Thread {
 						break;
 					}
 				}
-//				if(proxyToServerSocket.isClosed()||userToProxySocket.isClosed()){
-//					System.out.println("Closed: " + header.getHost());
-//					break;
-//				}
 			}
 
 			/*
