@@ -93,31 +93,39 @@ public class HttpResponseParser {
 	}
 
 	public CacheInfoObject getCacheInfo() {
+		CacheInfoObject infoObject = new CacheInfoObject();
+		String[] settings;
+		String tmp = "";
 		boolean cacheControl = headerFields.containsKey("Cache-Control");
 		String cc = headerFields.get("Cache-Control");
-		int maxAge = -1;
-		boolean isPrivate = false;
-		boolean isPublic = false;
-		boolean noTransform = false;
 		if (cacheControl) {
 			if (!cc.contains("no-cache")) {
-				String[] settings = cc.split(",");
+				infoObject.setNoCache(false);
+				settings = cc.split(",");
 				for (int i = 0; i < settings.length; i++) {
-					if (settings[i].contains("max-age")) {
-						maxAge = Integer.parseInt(settings[i]
-								.substring(settings[i].indexOf("=")+1));
-					} else if (settings[i].contains("private")) {
-						isPrivate = true;
-					} else if (settings[i].contains("public")) {
-						isPublic = true;
-					} else if (settings[i].contains("no-transform")) {
-						noTransform = true;
+					tmp = settings[i];
+					if (tmp.contains("max-age")) {
+						String s = tmp.substring(tmp.indexOf("=") + 1);
+						infoObject.setMaxAge(Integer.parseInt(s));
+					} else if (tmp.contains("private")) {
+						infoObject.setPrivate(true);
+					} else if (tmp.contains("public")) {
+						infoObject.setPublic(true);
+					} else if (tmp.contains("no-transform")) {
+						infoObject.setNoModify(true);
 					} else {
-						System.out.println("\t\t" + settings[i]);
+						/*
+						 * Some sort of an error value
+						 */
+						System.out.println("\t\t" + tmp);
 					}
 				}
+			} else {
+				infoObject.setNoCache(true);
 			}
+		}else{
+			infoObject = null;
 		}
-		return null;
+		return infoObject;
 	}
 }

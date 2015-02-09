@@ -177,6 +177,7 @@ public class ProxyWorkerThread extends Thread {
 			 * Parse the response.
 			 */
 			httpResponseHeader = new HttpResponseParser(hostToUserData);
+			//TODO: add caching.
 			/*
 			 * Pass initial return, from the host, to the user.
 			 */
