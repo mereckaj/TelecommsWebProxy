@@ -26,16 +26,12 @@ public class ConfigEditGUI {
 	private JFileChooser fc = new JFileChooser(System.getProperty("user.dir"));
 	private JFormattedTextField maxBufferField;
 
-	/**
-	 * Launch the application.
-	 */
+	
 	public JFrame getMainFrame(){
 		return frame;
 	}
 
-	/**
-	 * Create the application.
-	 */
+	
 	public ConfigEditGUI() {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -46,9 +42,7 @@ public class ConfigEditGUI {
 		initialize();
 	}
 
-	/**
-	 * Initialize the contents of the frame.
-	 */
+	
 	private void initialize() {
 		fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		fc.setFileHidingEnabled(false);

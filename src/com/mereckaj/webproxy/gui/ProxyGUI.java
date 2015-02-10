@@ -35,9 +35,7 @@ public class ProxyGUI {
 	private Pattern patternIp;
 	private Matcher matcherIP;
 	static HTTPProxy proxyMainThread;
-	/**
-	 * Launch the application.
-	 */
+	
 	public static void main(String[] args) {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -59,16 +57,12 @@ public class ProxyGUI {
 		proxyMainThread.run();
 	}
 
-	/**
-	 * Create the application.
-	 */
+	
 	public ProxyGUI() {
 		initialize();
 	}
 
-	/**
-	 * Initialize the contents of the frame.
-	 */
+	
 	private void initialize() {
 		patternIp = Pattern
 				.compile("^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])$");

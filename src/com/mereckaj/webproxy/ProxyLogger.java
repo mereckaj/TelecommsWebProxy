@@ -13,14 +13,7 @@ public class ProxyLogger {
 	private FileHandler fileHandle;
 	private static ProxyLogger instance = new ProxyLogger();
 	
-	/**
-	 * private constructor because accessing this class should be done by ProxyLogger.getInstance()
-	 * 
-	 * Checks if the log has been created, if not then create it.
-	 * 
-	 * New log is created each time the proxy is started 
-	 * with the name: .log_, followed by the current date and time
-	 */
+	
 	private ProxyLogger() {
 		if (log == null) {
 			log = Logger.getLogger("ProxyLog");
@@ -35,19 +28,12 @@ public class ProxyLogger {
 			}
 		}
 	}
-	/**
-	 * get the instance of this class
-	 * @return ProxyLogger instance
-	 */
+	
 	public static ProxyLogger getInstance() {
 		return instance;
 	}
 	
-	/**
-	 * indirect access to loggers log function
-	 * @param l = Level of the message
-	 * @param m = message to log
-	 */
+	
 	public void log(Level l, String m) {
 		log.log(l, m);
 	}

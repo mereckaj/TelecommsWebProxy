@@ -8,6 +8,7 @@ public class ProxyCacheManager {
 	private static final boolean READ_WRITE_LOCK_IS_FAIR = true;
 	private static final long MAXIMUM_LOCK_WAIT_TIME = 50;
 	private static final TimeUnit LOCK_WAIT_TIME_UNIT = TimeUnit.MILLISECONDS;
+
 	private static ProxyCacheManager instance = new ProxyCacheManager();
 
 	private static Hashtable<String, byte[]> cache = new Hashtable<String, byte[]>();

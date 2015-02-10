@@ -64,7 +64,13 @@ public class HttpResponseParser {
 	private void parseMethod(String method) {
 
 	}
-
+	public String getContentLength(){
+		if(headerFields.containsKey("Content-Length")){
+			return headerFields.get("Content-Length");
+		}else{
+			return null;
+		}
+	}
 	/*
 	 * Returns null if key does not exist in the map.
 	 */
