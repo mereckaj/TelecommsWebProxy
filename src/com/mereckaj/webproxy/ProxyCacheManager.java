@@ -11,7 +11,7 @@ public class ProxyCacheManager {
 
 	private static ProxyCacheManager instance = new ProxyCacheManager();
 
-	private static Hashtable<String, byte[]> cache = new Hashtable<String, byte[]>();
+	private static Hashtable<String, CacheInfoObject> cache = new Hashtable<String, CacheInfoObject>();
 	private static ReentrantReadWriteLock cacheLock;
 
 	private ProxyCacheManager() {
@@ -43,12 +43,13 @@ public class ProxyCacheManager {
 		return result;
 	}
 
-	public byte[] getData(String url) {
-		byte[] result = null;
+	public CacheInfoObject getData(String url) {
+		CacheInfoObject result = null;
 		try {
 			if (cacheLock.readLock().tryLock(MAXIMUM_LOCK_WAIT_TIME,
 					LOCK_WAIT_TIME_UNIT)) {
 				result = cache.get(url);
+				//TODO CHECK TIMES
 				cacheLock.readLock().unlock();
 			}
 		} catch (InterruptedException e) {
@@ -58,7 +59,7 @@ public class ProxyCacheManager {
 		return result;
 	}
 
-	public boolean cacheIn(String url, byte[] data) {
+	public boolean cacheIn(String url, CacheInfoObject data) {
 		boolean result = false;
 		try {
 			if (cacheLock.writeLock().tryLock(MAXIMUM_LOCK_WAIT_TIME,

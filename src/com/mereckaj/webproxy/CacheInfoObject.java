@@ -8,12 +8,14 @@ public class CacheInfoObject {
 	private int maxAge;
 	private String date;
 	private byte[] data;
+	private boolean mustRevalidate;
 
 	public CacheInfoObject() {
 		setNoCache(false);
 		setPrivate(false);
 		setPublic(false);
 		setNoModify(false);
+		setMustRevalidate(false);
 		setMaxAge(-1);
 		setDate("");
 		setData(null);
@@ -23,8 +25,8 @@ public class CacheInfoObject {
 		return false;
 	}
 
-	public boolean isNoCache() {
-		return noCache;
+	public boolean isCacheable() {
+		return (!noCache);
 	}
 
 	public void setNoCache(boolean noCache) {
@@ -92,5 +94,13 @@ public class CacheInfoObject {
 			System.arraycopy(data, 0, newData, this.data.length, data.length);
 			this.data = newData;
 		}
+	}
+
+	public boolean isMustRevalidate() {
+	    return mustRevalidate;
+	}
+
+	public void setMustRevalidate(boolean mustRevalidate) {
+	    this.mustRevalidate = mustRevalidate;
 	}
 }
