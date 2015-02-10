@@ -14,9 +14,6 @@ public class ProxyWorkerThread extends Thread {
 
 	private static final int HTTP_PORT = 80;
 
-	private int bytesReceivedFromHost;
-	private int bytesReceivedFromUser;
-
 	private Socket userToProxySocket;
 
 	private Socket proxyToServerSocket;
@@ -54,7 +51,6 @@ public class ProxyWorkerThread extends Thread {
 			}
 
 			httpRequestHeader = new HttpRequestParser(userToHostData);
-			bytesReceivedFromUser += userToHostData.length;
 
 			if (filterHost(httpRequestHeader.getHost())) {
 				return;
@@ -78,7 +74,6 @@ public class ProxyWorkerThread extends Thread {
 			sendUserRequestToRemoteHost(userToHostData);
 
 			hostToUserData = getResponseFromRemoteHost();
-			bytesReceivedFromHost += hostToUserData.length;
 
 			httpResponseHeader = new HttpResponseParser(hostToUserData);
 
@@ -90,14 +85,12 @@ public class ProxyWorkerThread extends Thread {
 				if (outgoingInputStream.available() != 0) {
 
 					hostToUserData = getResponseFromRemoteHost();
-					bytesReceivedFromHost += hostToUserData.length;
 
 					returnResponseFromHostToUser(hostToUserData);
 				}
 				if (incomingInputStream.available() != 0) {
 
 					userToHostData = getDataFromUserToRemoteHost();
-					bytesReceivedFromUser += userToHostData.length;
 
 					if (filterContent(userToHostData)) {
 						return;
@@ -123,11 +116,6 @@ public class ProxyWorkerThread extends Thread {
 
 			ProxyDataLogger.getInstance().log(ProxyLogLevel.DISCONNECT,
 					"Disconnected:" + httpRequestHeader.getHost());
-
-			ProxyDataLogger.getInstance().log(
-					ProxyLogLevel.USAGE,
-					"U2P:" + bytesReceivedFromUser + " " + "H2P:"
-							+ bytesReceivedFromHost);
 
 			closeConnection();
 
