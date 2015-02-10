@@ -136,6 +136,9 @@ public class HttpResponseParser {
 		infoObject.setNoCache(true);
 	    }
 	}
+	if(headerFields.containsKey("Date")){
+	    infoObject.setDate(headerFields.get("Date"));
+	}
 	return infoObject;
     }
 }
