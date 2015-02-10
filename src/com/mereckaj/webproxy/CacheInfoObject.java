@@ -74,7 +74,14 @@ public class CacheInfoObject {
 	public byte[] getData() {
 		return data;
 	}
-
+	
+	public void put(byte[] data){
+	    if(this.data==null){
+		setData(data);
+	    }else{
+		appendData(data);
+	    }
+	}
 	public void setData(byte[] data) {
 		this.data = data;
 	}
