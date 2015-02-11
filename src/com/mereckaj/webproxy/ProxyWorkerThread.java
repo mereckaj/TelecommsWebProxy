@@ -144,9 +144,11 @@ public class ProxyWorkerThread extends Thread {
     private void writeToCacheIfNeeded(CacheInfoObject cacheInfoObject, String url) {
 	boolean success = false;
 	if (cacheInfoObject != null && cacheInfoObject.isCacheable()) {
-	    success = ProxyCacheManager.getInstance().cacheIn(url, cacheInfoObject);
-	    if (!success) {
-		ProxyLogger.getInstance().log(ProxyLogLevel.EXCEPTION, "UNABLE TO CACHE ");
+	    if (!cacheInfoObject.isPrivate()) {
+		success = ProxyCacheManager.getInstance().cacheIn(url, cacheInfoObject);
+		if (!success) {
+		    ProxyLogger.getInstance().log(ProxyLogLevel.EXCEPTION, "UNABLE TO CACHE ");
+		}
 	    }
 	}
     }
