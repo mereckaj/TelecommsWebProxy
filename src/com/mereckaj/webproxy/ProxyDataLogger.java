@@ -13,7 +13,6 @@ public class ProxyDataLogger {
 	private Logger log;
 	private FileHandler fileHandle;
 	private String pathToLog;
-
 	
 	private ProxyDataLogger() {
 		if (log == null) {
@@ -43,5 +42,14 @@ public class ProxyDataLogger {
 	
 	public void log(Level l, String m) {
 		log.log(l, m);
+	}
+	public void setEnabled(boolean e){
+	    if(e==false){
+		log.setLevel(Level.OFF);
+	    }else{
+		if(log.getLevel()==Level.OFF){
+		    log.setLevel(Level.ALL);
+		}
+	    }
 	}
 }
