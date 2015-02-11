@@ -1,6 +1,7 @@
 package com.mereckaj.webproxy;
 
 public class CacheInfoObject {
+    	public String wholeheader;
 	private boolean noCache;
 	private boolean isPrivate;
 	private boolean isPublic;
