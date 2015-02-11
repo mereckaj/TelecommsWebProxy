@@ -12,11 +12,12 @@ public class HttpResponseParser {
     private String method;
     private Map<String, String> headerFields;
     private byte[] headerData;
+    String temp;
 
     public HttpResponseParser(byte[] data) {
 	if (data != null) {
 	    headerFields = new HashMap<String, String>();
-	    String temp = new String(data);
+	    temp = new String(data);
 	    String[] lines = temp.split("\r\n");
 	    protocol = lines[0].split(" ")[0];
 	    method = lines[0].split(" ")[1];
@@ -101,11 +102,18 @@ public class HttpResponseParser {
     }
 
     public CacheInfoObject getCacheInfo() {
+	if (method.contains("304 Not Modified")) {
+	    return null;
+	}
 	CacheInfoObject infoObject = new CacheInfoObject();
 	String[] settings;
 	String tmp = "";
-	boolean cacheControl = headerFields.containsKey("Cache-Control");
+	boolean cacheControl = (headerFields.containsKey("Cache-Control") || headerFields
+		.containsKey("cache-control"));
 	String cc = headerFields.get("Cache-Control");
+	if(cc == null){
+	    cc = headerFields.get("cache-control");
+	}
 	if (cacheControl) {
 	    if (!cc.contains("no-cache")) {
 		infoObject.setNoCache(false);
@@ -121,24 +129,25 @@ public class HttpResponseParser {
 			infoObject.setPublic(true);
 		    } else if (tmp.contains("no-transform")) {
 			infoObject.setNoModify(true);
-		    } else if(tmp.contains("must-revalidate")){
+		    } else if (tmp.contains("must-revalidate")) {
 			infoObject.setMustRevalidate(true);
-		    }else if(tmp.contains("s-maxage")){
-			//TODO Something to do if s-maxage is specified
-		    }else{			
+		    } else if (tmp.contains("s-maxage")) {
+			// TODO Something to do if s-maxage is specified
+		    } else {
 			/*
 			 * Some sort of an error value
 			 */
-			System.out.println("\t\t" + tmp);
+//			System.out.println("\t\t" + tmp);
 		    }
 		}
 	    } else {
 		infoObject.setNoCache(true);
 	    }
 	}
-	if(headerFields.containsKey("Date")){
-	    infoObject.setDate(headerFields.get("Date"));
+	if (headerFields.containsKey("Date")) {
+	    infoObject.setDate(headerFields.get("Date").trim());
 	}
+	infoObject.wholeheader = temp;
 	return infoObject;
     }
 }
