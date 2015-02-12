@@ -7,6 +7,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import com.mereckaj.webproxy.gui.ProxyGUI;
 import com.mereckaj.webproxy.utils.HttpRequestParser;
 import com.mereckaj.webproxy.utils.HttpResponseParser;
 
@@ -29,6 +30,10 @@ public class ProxyWorkerThread extends Thread {
     private static boolean filteringEnabled;
 
     private boolean cacheThisData;
+
+    private int dataReceived;
+
+    private int dataSent;
 
     public ProxyWorkerThread(Socket s) {
 	this.userToProxySocket = s;
@@ -54,22 +59,24 @@ public class ProxyWorkerThread extends Thread {
 	    if (userToHostData == null) {
 		return;
 	    }
+	    dataSent += userToHostData.length;
 
 	    httpRequestHeader = new HttpRequestParser(userToHostData);
-
 	    if (filterHost(httpRequestHeader.getHost()) || filterContent(userToHostData)) {
 		return;
 	    }
 
 	    if (proxyCacheManager.isCached(httpRequestHeader.getUrl())) {
-		returnResponseFromHostToUser(proxyCacheManager.getData(httpRequestHeader.getUrl())
-			.getData());
+		byte[] data = proxyCacheManager.getData(httpRequestHeader.getUrl()).getData();
+		returnResponseFromHostToUser(data);
+		UICacheHit(httpRequestHeader.getUrl(), data.length);
 	    } else {
 		proxyToServerSocket = new Socket(httpRequestHeader.getHost(), HTTP_PORT);
 		proxyDataLogger.log(
 			ProxyLogLevel.CONNECT,
 			"Connected: " + httpRequestHeader.getHost() + " For: "
 				+ httpRequestHeader.getUrl() + " Port: " + HTTP_PORT);
+		ProxyGUI.addToInfoAread("CONNECT\t" + httpRequestHeader.getHost());
 
 		outgoingInputStream = proxyToServerSocket.getInputStream();
 		outgoingOutputStream = proxyToServerSocket.getOutputStream();
@@ -77,6 +84,7 @@ public class ProxyWorkerThread extends Thread {
 		sendUserRequestToRemoteHost(userToHostData);
 
 		hostToUserData = getResponseFromRemoteHost();
+		dataReceived += hostToUserData.length;
 
 		httpResponseHeader = new HttpResponseParser(hostToUserData);
 		cacheInfoObject = httpResponseHeader.getCacheInfo();
@@ -93,6 +101,7 @@ public class ProxyWorkerThread extends Thread {
 
 		    if (outgoingInputStream.available() != 0) {
 			hostToUserData = getResponseFromRemoteHost();
+			dataReceived += hostToUserData.length;
 			returnResponseFromHostToUser(hostToUserData);
 			if (cacheThisData) {
 			    cacheInfoObject.put(hostToUserData);
@@ -101,6 +110,7 @@ public class ProxyWorkerThread extends Thread {
 		    if (incomingInputStream.available() != 0) {
 
 			userToHostData = getDataFromUserToRemoteHost();
+			dataSent += userToHostData.length;
 
 			if (filterContent(userToHostData)) {
 			    break;
@@ -127,6 +137,8 @@ public class ProxyWorkerThread extends Thread {
 	    }
 	    proxyDataLogger.log(ProxyLogLevel.DISCONNECT,
 		    "Disconnected:" + httpRequestHeader.getHost());
+	    ProxyGUI.addToInfoAread("DISCONNECT\t" + httpRequestHeader.getHost());
+	    ProxyGUI.addToInfoAread("USAGE\tSent:" + dataSent + " Received:" + dataReceived);
 	    closeConnection();
 	    closeDataStreams();
 
@@ -139,6 +151,13 @@ public class ProxyWorkerThread extends Thread {
 	    join();
 	} catch (InterruptedException e) {
 	}
+    }
+
+    private void UICacheHit(String url, int length) {
+	if (url.length() > 80) {
+	    url = url.substring(0, 40) + "...";
+	}
+	ProxyGUI.addToInfoAread("CACHE HIT\t" + url + " " + length+" bytes");
     }
 
     private void writeToCacheIfNeeded(CacheInfoObject cacheInfoObject, String url) {
@@ -201,6 +220,7 @@ public class ProxyWorkerThread extends Thread {
 	if (filteringEnabled && containsBlockedContent(data)) {
 	    ProxyDataLogger.getInstance().log(ProxyLogLevel.INFO,
 		    "Blocked: from: " + userToProxySocket.getInetAddress() + " contenct violation");
+	    ProxyGUI.addToInfoAread("BLOCKED\t" + userToProxySocket.getInetAddress());
 	    doActionIfBlocked();
 	    return true;
 	}
@@ -213,6 +233,7 @@ public class ProxyWorkerThread extends Thread {
 		    ProxyLogLevel.INFO,
 		    "Blocked :" + host + " from: " + userToProxySocket.getInetAddress()
 			    + " blocked host");
+	    ProxyGUI.addToInfoAread("BLOCKED\t" + host);
 	    doActionIfBlocked();
 	    return true;
 	}
