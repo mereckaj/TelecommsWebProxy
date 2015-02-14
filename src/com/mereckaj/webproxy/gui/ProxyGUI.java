@@ -34,6 +34,15 @@ import com.mereckaj.webproxy.HTTPProxy;
 import com.mereckaj.webproxy.ProxySettings;
 import com.mereckaj.webproxy.ProxyTrafficFilter;
 
+/**
+ * This class deals with the main GUI.
+ * 
+ * No comments here as all it does is create the windwos and adds event
+ * listeners
+ * 
+ * @author julius
+ * 
+ */
 public class ProxyGUI {
 
     private JFrame frmWebProxy;
