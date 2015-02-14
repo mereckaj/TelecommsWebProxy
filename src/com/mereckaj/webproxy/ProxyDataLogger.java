@@ -9,9 +9,8 @@ import java.util.logging.SimpleFormatter;
 import com.mereckaj.webproxy.utils.Utils;
 
 /**
- * This class logs any exceptions or messages that were not related to the
- * proxying of data<br>
- * It will log errors and config changes
+ * This class logs any proxy traffic related messages. Use this class to log
+ * events such as Connects Disconnect and Usage
  * 
  * This is a singleton object and the constructor is private.<br>
  * This means that the only way to get an instance of this object is through
