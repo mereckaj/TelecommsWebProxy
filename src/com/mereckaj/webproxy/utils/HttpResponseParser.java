@@ -5,7 +5,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.mereckaj.webproxy.CacheInfoObject;
-
+/**
+ * This class parses a HTTP Response header.
+ * 
+ * It gets data like: PROTOCOL,METHOD and mainly: <b> Cache-Content </b> settings
+ */
 public class HttpResponseParser {
 
     private String protocol;
@@ -134,10 +138,7 @@ public class HttpResponseParser {
 		    } else if (tmp.contains("s-maxage")) {
 			// TODO Something to do if s-maxage is specified
 		    } else {
-			/*
-			 * Some sort of an error value
-			 */
-//			System.out.println("\t\t" + tmp);
+			//Uh oh
 		    }
 		}
 	    } else {

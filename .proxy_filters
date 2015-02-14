@@ -3,5 +3,3 @@
 # Lines starting with # or \n are ignored
 # Proxy ignores case
 # This will even block HTML/CSS/JS words. Bug/Feature ? you decide.
-bbc
-bbc.co.uk
