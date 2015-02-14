@@ -170,6 +170,14 @@ public class ProxyCacheManager {
 		cacheLock.writeLock().unlock();
 	    }
 	} catch (InterruptedException e) {
+	    try{
+		cacheLock.writeLock().unlock();
+	    } catch (IllegalMonitorStateException f){
+		/*
+		 * Attempted to unlock when didn't have a lock. No big problem here.
+		 * Just a precaution move.
+		 */
+	    }
 	    logger.log(ProxyLogLevel.CACHE_ERROR, "Exception: " + e.getMessage());
 	}
 	return result;
@@ -178,8 +186,9 @@ public class ProxyCacheManager {
     /**
      * This method parses the HTTP format date into a {@link Date} object.
      * This is used to enable comparison of dates by the cahce.
-     * @param date
-     * @return
+     * @param date the string format date to be parsed
+     * @return <b>null</b> if a {@link ParseException} is caught<br>
+     * {@link Date} if the parse is successful.
      */
     public Date parseDate(String date) {
 	Date d = null;
