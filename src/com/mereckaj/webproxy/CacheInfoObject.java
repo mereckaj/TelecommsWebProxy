@@ -1,5 +1,7 @@
 package com.mereckaj.webproxy;
 
+import java.util.Date;
+
 /**
  * This is an object class that will be used to transport information between
  * the worker threads and the cache.
@@ -17,9 +19,10 @@ public class CacheInfoObject {
     private boolean isPublic;
     private boolean noModify;
     private int maxAge;
-    private String date;
+    private Date date;
     private byte[] data;
     private boolean mustRevalidate;
+    private String key;
 
     /**
      * Construct a new CacheInfoObject, Values are initially set in such a way
@@ -32,8 +35,9 @@ public class CacheInfoObject {
 	setNoModify(false);
 	setMustRevalidate(false);
 	setMaxAge(-1);
-	setDate("");
+	setDate(new Date(0));
 	setData(null);
+	setKey(null);
     }
 
     public boolean hasExpired(String date) {
@@ -80,11 +84,11 @@ public class CacheInfoObject {
 	this.maxAge = maxAge;
     }
 
-    public String getDate() {
+    public Date getDate() {
 	return date;
     }
 
-    public void setDate(String date) {
+    public void setDate(Date date) {
 	this.date = date;
     }
 
@@ -125,5 +129,13 @@ public class CacheInfoObject {
 
     public void setMustRevalidate(boolean mustRevalidate) {
 	this.mustRevalidate = mustRevalidate;
+    }
+
+    public String getKey() {
+	return key;
+    }
+
+    public void setKey(String key) {
+	this.key = key;
     }
 }

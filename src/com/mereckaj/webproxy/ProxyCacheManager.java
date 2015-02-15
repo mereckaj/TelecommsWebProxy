@@ -1,10 +1,9 @@
 package com.mereckaj.webproxy;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -35,6 +34,7 @@ public class ProxyCacheManager {
     private static Hashtable<String, CacheInfoObject> cache = new Hashtable<String, CacheInfoObject>();
     private static ReentrantReadWriteLock cacheLock;
     private ProxyLogger logger;
+    private Calendar c = Calendar.getInstance();
 
     private ProxyCacheManager() {
 	// Check to see if a lock already exists, create it if not
@@ -101,10 +101,7 @@ public class ProxyCacheManager {
 			     * and check if that time + maxAge has passed. In
 			     * which case the cached object has expired.
 			     */
-			    // TODO:Change CacheInfoObject's date to Date rather
-			    // than String
-			    Date d = parseDate(r.getDate());
-			    Calendar c = Calendar.getInstance();
+			    Date d = r.getDate();
 			    c.setTime(d);
 			    c.add(Calendar.SECOND, r.getMaxAge());
 			    if (c.after(d)) {
@@ -182,22 +179,24 @@ public class ProxyCacheManager {
 	}
 	return result;
     }
+  
     
-    /**
-     * This method parses the HTTP format date into a {@link Date} object.
-     * This is used to enable comparison of dates by the cahce.
-     * @param date the string format date to be parsed
-     * @return <b>null</b> if a {@link ParseException} is caught<br>
-     * {@link Date} if the parse is successful.
-     */
-    public Date parseDate(String date) {
-	Date d = null;
-	SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
-	try {
-	    d = format.parse(date);
-	} catch (ParseException e) {
+    public CacheInfoObject[] getAllCachedItems(){
+	CacheInfoObject[] result = null;
+	try{
+	    if(cacheLock.readLock().tryLock()){
+		Set<String> keys = cache.keySet();
+		String[] k = new String[keys.size()];
+		result = new CacheInfoObject[keys.size()];
+		keys.toArray(k);
+		for(int i = 0; i < k.length;i++){
+		    result[i] = cache.get(k[i]);
+		}
+	    }
+	}finally{
+	    cacheLock.readLock().unlock();
 	}
-	return d;
+	return result;
     }
 
 }

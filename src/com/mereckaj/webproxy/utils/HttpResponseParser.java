@@ -1,6 +1,9 @@
 package com.mereckaj.webproxy.utils;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -135,20 +138,32 @@ public class HttpResponseParser {
 			infoObject.setNoModify(true);
 		    } else if (tmp.contains("must-revalidate")) {
 			infoObject.setMustRevalidate(true);
-		    } else if (tmp.contains("s-maxage")) {
-			// TODO Something to do if s-maxage is specified
-		    } else {
-			//Uh oh
-		    }
+		    } 
 		}
 	    } else {
 		infoObject.setNoCache(true);
 	    }
 	}
 	if (headerFields.containsKey("Date")) {
-	    infoObject.setDate(headerFields.get("Date").trim());
+	    infoObject.setDate(parseDate(headerFields.get("Date").trim()));
 	}
 	infoObject.wholeheader = temp;
 	return infoObject;
+    }
+    /**
+     * This method parses the HTTP format date into a {@link Date} object.
+     * This is used to enable comparison of dates by the cahce.
+     * @param date the string format date to be parsed
+     * @return <b>null</b> if a {@link ParseException} is caught<br>
+     * {@link Date} if the parse is successful.
+     */
+    public Date parseDate(String date) {
+	Date d = null;
+	SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
+	try {
+	    d = format.parse(date);
+	} catch (ParseException e) {
+	}
+	return d;
     }
 }

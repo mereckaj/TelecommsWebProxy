@@ -8,21 +8,9 @@
 # Below is a list of blocked host names.
 # Each new blocked host must be entered on a new line
 [HOST]
-google.com
-imgur.com
 
 # Below is a list of blocked IP's
 # Each new blocked ip must be entered on a new line
 [IP]
-192.168.1.11
-
-
-
-
-
-
-
-
-
 
 

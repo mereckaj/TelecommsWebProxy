@@ -14,7 +14,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -29,8 +28,9 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.text.DefaultCaret;
-
+import com.mereckaj.webproxy.CacheInfoObject;
 import com.mereckaj.webproxy.HTTPProxy;
+import com.mereckaj.webproxy.ProxyCacheManager;
 import com.mereckaj.webproxy.ProxySettings;
 import com.mereckaj.webproxy.ProxyTrafficFilter;
 
@@ -88,7 +88,7 @@ public class ProxyGUI {
 	System.setOut(new PrintStream(new OutputStream() {
 	    @Override
 	    public void write(int arg0) throws IOException {
-		addToInfoAread((char) arg0 + "");
+		addToInfoAread((char) arg0 + "",false);
 	    }
 	}));
     }
@@ -124,16 +124,16 @@ public class ProxyGUI {
 	JMenu mnFile = new JMenu("File");
 	menuBar.add(mnFile);
 
-	JMenuItem mntmOpenFile = new JMenuItem("Open File");
+	JMenuItem mntmOpenFile = new JMenuItem("Show Cache");
 	mntmOpenFile.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent e) {
-		int returnVal = fc.showOpenDialog(null);
-
-		if (returnVal == JFileChooser.APPROVE_OPTION) {
-		    fc.getSelectedFile();
-		} else {
-		    fc.setEnabled(false);
+		ProxyCacheManager manager = ProxyCacheManager.getInstance();
+		CacheInfoObject[] objs = manager.getAllCachedItems();
+		addToInfoAread("___CACHE_DUMP_START___", true);
+		for (int i = 0; i < objs.length; i++) {
+		    addToInfoAread("\t" + objs[i].getKey(), true);
 		}
+		addToInfoAread("___CACHE_DUMP_END___", true);
 	    }
 	});
 	mnFile.add(mntmOpenFile);
@@ -392,10 +392,13 @@ public class ProxyGUI {
 
     }
 
-    public static void addToInfoAread(String s) {
+    public static void addToInfoAread(String s,boolean addNewLine) {
 	l.lock();
 	try {
-	    txtInfoArea.append(s + "\n");
+	    if(addNewLine){
+		s+="\n";
+	    }
+	    txtInfoArea.append(s);
 	} finally {
 	    l.unlock();
 	}

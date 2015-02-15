@@ -2,7 +2,7 @@
 # Author Julius Mereckas
 
 #Set the port to which the proxy will bind
-PROXY_PORT = 4000
+PROXY_PORT = 8080
 
 #If logging is disabled no writes to log will made 
 #Management engine will not do anything

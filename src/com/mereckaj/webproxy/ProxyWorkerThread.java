@@ -119,7 +119,7 @@ public class ProxyWorkerThread extends Thread {
 		dataLogger.log(ProxyLogLevel.CONNECT, "Connected: " + httpRequestHeader.getHost()
 			+ " For: " + httpRequestHeader.getUrl() + " Port: " + HTTP_PORT);
 		//Add info the the UI
-		ProxyGUI.addToInfoAread("CONNECT\t" + httpRequestHeader.getHost());
+		ProxyGUI.addToInfoAread("CONNECT\t" + httpRequestHeader.getHost(),true);
 
 		outgoingInputStream = proxyToServerSocket.getInputStream();
 		outgoingOutputStream = proxyToServerSocket.getOutputStream();
@@ -216,8 +216,8 @@ public class ProxyWorkerThread extends Thread {
 	    dataLogger.log(ProxyLogLevel.DISCONNECT, "Disconnected:" + httpRequestHeader.getHost());
 	    
 	    //Print information to UI
-	    ProxyGUI.addToInfoAread("DISCONNECT\t" + httpRequestHeader.getHost());
-	    ProxyGUI.addToInfoAread("USAGE\tSent:" + dataSent + " Received:" + dataReceived);
+	    ProxyGUI.addToInfoAread("DISCONNECT\t" + httpRequestHeader.getHost(),true);
+	    ProxyGUI.addToInfoAread("USAGE\tSent:" + dataSent + " Received:" + dataReceived,true);
 	    
 	    /*
 	     * Close all of the streams and connection
@@ -241,10 +241,10 @@ public class ProxyWorkerThread extends Thread {
      * Print the info of a cache hit to the UI
      */
     private void UICacheHit(String url, int length) {
-	if (url.length() > 80) {
+	if (url.length() > 40) {
 	    url = url.substring(0, 40) + "...";
 	}
-	ProxyGUI.addToInfoAread("CACHE HIT\t" + url + " " + length + " bytes");
+	ProxyGUI.addToInfoAread("CACHE HIT\t" + url + " " + length + " bytes",true);
     }
     
     /*
@@ -254,6 +254,7 @@ public class ProxyWorkerThread extends Thread {
     private void writeToCacheIfNeeded(CacheInfoObject cacheInfoObject, String url) {
 	boolean success = false;
 	if (cacheInfoObject != null && cacheInfoObject.isCacheable()) {
+	    cacheInfoObject.setKey(url);
 	    if (!cacheInfoObject.isPrivate()) {
 		success = ProxyCacheManager.getInstance().cacheIn(url, cacheInfoObject);
 		if (!success) {
@@ -331,7 +332,7 @@ public class ProxyWorkerThread extends Thread {
 	if (filteringEnabled && containsBlockedContent(data)) {
 	    dataLogger.log(ProxyLogLevel.INFO,
 		    "Blocked: from: " + userToProxySocket.getInetAddress() + " contenct violation");
-	    ProxyGUI.addToInfoAread("BLOCKED\t" + userToProxySocket.getInetAddress());
+	    ProxyGUI.addToInfoAread("BLOCKED\t" + userToProxySocket.getInetAddress(),true);
 	    doActionIfBlocked();
 	    return true;
 	}
@@ -342,12 +343,12 @@ public class ProxyWorkerThread extends Thread {
      * Given a hostname, this method checks if it is in the blocked list
      */
     private boolean filterHost(String host) {
-	//TODO: better IP filtering
+	
 	if (filteringEnabled && isBlockedHostOrIP(host)) {
 	    dataLogger.log(ProxyLogLevel.INFO,
 		    "Blocked :" + host + " from: " + userToProxySocket.getInetAddress()
 			    + " blocked host");
-	    ProxyGUI.addToInfoAread("BLOCKED\t" + host);
+	    ProxyGUI.addToInfoAread("BLOCKED\t" + host,true);
 	    doActionIfBlocked();
 	    return true;
 	}
