@@ -61,7 +61,22 @@ public class Utils {
 	return br;
     }
 
-    private static File getFile(String path) {
+    public static File openOrCreateFolder(String path) {
+	File f = new File(path);
+	if (!f.exists()) {
+	    if (!f.isDirectory()) {
+		f.mkdir();
+	    }
+	}
+	return f;
+    }
+
+    public static File[] getAllFilesInFolder(String path) {
+	File f = new File(path);
+	return f.listFiles();
+    }
+
+    public static File getFile(String path) {
 	return new File(path);
     }
 

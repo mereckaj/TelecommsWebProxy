@@ -1,11 +1,18 @@
 package com.mereckaj.webproxy;
 
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import javax.swing.plaf.FileChooserUI;
+
+import org.apache.commons.io.FileUtils;
+
+import com.mereckaj.webproxy.utils.Utils;
 
 /**
  * This is a singleton class of a Cache Manager used by the proxy <br>
@@ -17,6 +24,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * The cache never removes items from itself. This is done to increase the cache
  * speed. If the object has expired then the cache will say that the page is not
  * cache, in which case the Worker thread will cache that page again once more.
+ * 
  * @author julius
  * 
  */
@@ -37,6 +45,7 @@ public class ProxyCacheManager {
     private Calendar c = Calendar.getInstance();
 
     private ProxyCacheManager() {
+	//TODO: Read in cache from file
 	// Check to see if a lock already exists, create it if not
 	if (cacheLock == null) {
 	    cacheLock = new ReentrantReadWriteLock(READ_WRITE_LOCK_IS_FAIR);
@@ -133,9 +142,10 @@ public class ProxyCacheManager {
      * 
      * It checks if the data is still inside the cache just a precaution.
      * 
-     * @param url to check if it is cached
-     * @return <b>null</b> if the method was interupted or the object is no longer in the cache
-     * or has expired
+     * @param url
+     *            to check if it is cached
+     * @return <b>null</b> if the method was interupted or the object is no
+     *         longer in the cache or has expired
      */
     public synchronized CacheInfoObject getData(String url) {
 	CacheInfoObject result = null;
@@ -151,9 +161,10 @@ public class ProxyCacheManager {
 	}
 	return result;
     }
-    
+
     /**
      * This method is used to add items to the cache.
+     * 
      * @param url
      * @param data
      * @return
@@ -167,36 +178,64 @@ public class ProxyCacheManager {
 		cacheLock.writeLock().unlock();
 	    }
 	} catch (InterruptedException e) {
-	    try{
+	    try {
 		cacheLock.writeLock().unlock();
-	    } catch (IllegalMonitorStateException f){
+	    } catch (IllegalMonitorStateException f) {
 		/*
-		 * Attempted to unlock when didn't have a lock. No big problem here.
-		 * Just a precaution move.
+		 * Attempted to unlock when didn't have a lock. No big problem
+		 * here. Just a precaution move.
 		 */
 	    }
 	    logger.log(ProxyLogLevel.CACHE_ERROR, "Exception: " + e.getMessage());
 	}
 	return result;
     }
-  
-    
-    public CacheInfoObject[] getAllCachedItems(){
+
+    public CacheInfoObject[] getAllCachedItems() {
 	CacheInfoObject[] result = null;
-	try{
-	    if(cacheLock.readLock().tryLock()){
+	try {
+	    if (cacheLock.readLock().tryLock()) {
 		Set<String> keys = cache.keySet();
 		String[] k = new String[keys.size()];
 		result = new CacheInfoObject[keys.size()];
 		keys.toArray(k);
-		for(int i = 0; i < k.length;i++){
+		for (int i = 0; i < k.length; i++) {
 		    result[i] = cache.get(k[i]);
 		}
 	    }
-	}finally{
+	} finally {
 	    cacheLock.readLock().unlock();
 	}
 	return result;
     }
 
+    /**
+     * Method that deals with the cached data when the proxy is shutting down
+     */
+    public void onShutdown() {
+	ProxySettings settings = ProxySettings.getInstance();
+//	try {
+//	    FileUtils.cleanDirectory(Utils.getFile(settings.getPathToCache()));
+//	} catch (IOException e) {
+//	    e.printStackTrace();
+//	}
+	try {
+	    cacheLock.writeLock().lock();
+	    String[] keys = new String[cache.keySet().size()];
+	    cache.keySet().toArray(keys);
+	    for(int i = 0; i <keys.length;i++){
+		System.out.println("Writting to file: " + keys[i]);
+	    }
+	} finally {
+	    cacheLock.writeLock().unlock();
+	}
+	// TODO WRITE FILES
+    }
+
+    /**
+     * Method that deals with the cached data when the proxy is starting up
+     */
+    public void onStartup() {
+	// TODO READ FILES
+    }
 }

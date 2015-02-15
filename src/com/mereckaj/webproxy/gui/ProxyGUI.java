@@ -391,7 +391,7 @@ public class ProxyGUI {
 	infoField.setColumns(10);
 
     }
-
+    
     public static void addToInfoAread(String s,boolean addNewLine) {
 	l.lock();
 	try {

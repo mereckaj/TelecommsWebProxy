@@ -12,7 +12,7 @@ import java.util.Date;
  * 
  */
 public class CacheInfoObject {
-
+    //TODO: change time stamp when returning cached item
     public String wholeheader;
     private boolean noCache;
     private boolean isPrivate;

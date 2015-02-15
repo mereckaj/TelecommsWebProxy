@@ -16,8 +16,9 @@ import com.mereckaj.webproxy.utils.Utils;
 /**
  * This class deals with reading/writing changes to the config file.
  * 
- * This is a singleton object. This means the constructor is private. 
+ * This is a singleton object. This means the constructor is private.
  * getInstance() method should be used to get an isntance of this class.
+ * 
  * @author julius
  *
  */
@@ -35,6 +36,7 @@ public class ProxySettings {
     private String pathToLog;
     private String pathToFilters;
     private String pathToBlocked;
+    private String pathToCache;
 
     private static ProxySettings instance = new ProxySettings();
 
@@ -43,11 +45,14 @@ public class ProxySettings {
     private ProxyLogger logger;
 
     private ProxySettings() {
-	if(maxBufferSize==0){
+	if (pathToCache == null) {
+	    pathToCache = "/.cache";
+	}
+	if (maxBufferSize == 0) {
 	    maxBufferSize = 65536;
 	}
-	if(proxyPort==0){
-	    proxyPort=8080;
+	if (proxyPort == 0) {
+	    proxyPort = 8080;
 	}
 	if (logger == null) {
 	    logger = ProxyLogger.getInstance();
@@ -65,9 +70,10 @@ public class ProxySettings {
 	    }
 	}
     }
-    
+
     /**
      * Returns an instance of this object.
+     * 
      * @return instance of this object
      */
     public static ProxySettings getInstance() {
@@ -139,23 +145,24 @@ public class ProxySettings {
 	    logger.log(Level.SEVERE, "Config file was not found");
 	}
     }
-    
+
     /**
-     * This method is called by the GUI when the "SAVE" button is hit in the config editor
-     * or when the proxy is turned off. This makes sure that any changes made to the proxy while
-     * it was running are saved.
+     * This method is called by the GUI when the "SAVE" button is hit in the
+     * config editor or when the proxy is turned off. This makes sure that any
+     * changes made to the proxy while it was running are saved.
      * 
-     * This method saves config changes and additions or removals from blocked Host/IP/Phrase lists
+     * This method saves config changes and additions or removals from blocked
+     * Host/IP/Phrase lists
      */
     public void writeConfigHostIpPhraseDataToFile() {
 	writeConfigToFile();
 	writeBlockedHostIpToFile();
 	writeFilteredPhrasesToFile();
     }
-    
+
     /**
-     * What a nasty implementation.
-     * This just writes the blocked phrases to file.
+     * What a nasty implementation. This just writes the blocked phrases to
+     * file.
      */
     private void writeFilteredPhrasesToFile() {
 	File f = new File(pathToFilters);
@@ -182,10 +189,10 @@ public class ProxySettings {
 	}
 
     }
-    
+
     /**
-     * What a nasty implementation.
-     * This just writes the blocked hosts and IP's to file.
+     * What a nasty implementation. This just writes the blocked hosts and IP's
+     * to file.
      */
     private void writeBlockedHostIpToFile() {
 	File f = new File(pathToBlocked);
@@ -222,10 +229,9 @@ public class ProxySettings {
 	    }
 	}
     }
-    
+
     /**
-     * What a nasty implementation.
-     * This just writes the config to file.
+     * What a nasty implementation. This just writes the config to file.
      */
     private void writeConfigToFile() {
 	File f = new File(CONFIG_FILE_PATH);
@@ -310,6 +316,7 @@ public class ProxySettings {
     public void setRunning(boolean v) {
 	if (v == false) {
 	    writeConfigHostIpPhraseDataToFile();
+	    ProxyCacheManager.getInstance().onShutdown();
 	}
 	running = v;
     }
@@ -328,6 +335,14 @@ public class ProxySettings {
 
     public void setBlockedFilePath(String path) {
 	pathToBlocked = path;
+    }
+
+    public String getPathToCache() {
+	return pathToCache;
+    }
+
+    public void setPathToCache(String pathToCache) {
+	this.pathToCache = pathToCache;
     }
 
     public void setFiltersFilePath(String path) {
