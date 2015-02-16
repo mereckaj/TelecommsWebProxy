@@ -4,3 +4,4 @@ bin/
 .proxy_config
 .proxy_filters
 remove_logs.sh
+.cache
