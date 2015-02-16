@@ -2,6 +2,7 @@ package com.mereckaj.webproxy;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Hashtable;
@@ -11,6 +12,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import com.mereckaj.webproxy.utils.Utils;
 
@@ -44,12 +47,15 @@ public class ProxyCacheManager {
     private ProxyLogger logger;
     private ProxySettings settings;
     private Calendar c = Calendar.getInstance();
-
+    private JSONParser parser;
     private ProxyCacheManager() {
-	if(settings == null){
+	if(parser==null){
+	    parser = new JSONParser();
+	}
+	if (settings == null) {
 	    settings = ProxySettings.getInstance();
 	}
-	//TODO: Read in cache from file
+	// TODO: Read in cache from file
 	// Check to see if a lock already exists, create it if not
 	if (cacheLock == null) {
 	    cacheLock = new ReentrantReadWriteLock(READ_WRITE_LOCK_IS_FAIR);
@@ -116,7 +122,7 @@ public class ProxyCacheManager {
 			     */
 			    Date d = r.getDate();
 			    c.setTime(d);
-			    c.add(Calendar.SECOND, r.getMaxAge());
+			    c.add(Calendar.SECOND, (int)r.getMaxAge());
 			    if (c.after(d)) {
 				result = false;
 			    }
@@ -174,6 +180,9 @@ public class ProxyCacheManager {
      * @return
      */
     public synchronized boolean cacheIn(String url, CacheInfoObject data) {
+	if(data==null){
+	    return false;
+	}
 	boolean result = false;
 	try {
 	    if (cacheLock.writeLock().tryLock(MAXIMUM_LOCK_WAIT_TIME, LOCK_WAIT_TIME_UNIT)) {
@@ -218,7 +227,7 @@ public class ProxyCacheManager {
      */
     public void onShutdown() {
 	try {
-	    FileUtils.cleanDirectory(Utils.getFile(settings.getPathToCache()));
+	    FileUtils.cleanDirectory(Utils.openOrCreateFolder(settings.getPathToCache()));
 	} catch (IOException e) {
 	    e.printStackTrace();
 	}
@@ -226,7 +235,7 @@ public class ProxyCacheManager {
 	    cacheLock.writeLock().lock();
 	    String[] keys = new String[cache.keySet().size()];
 	    cache.keySet().toArray(keys);
-	    for(int i = 0; i <keys.length;i++){
+	    for (int i = 0; i < keys.length; i++) {
 		writeObjecToFile(Utils.convertToJSON(cache.get(keys[i])));
 	    }
 	} finally {
@@ -236,15 +245,28 @@ public class ProxyCacheManager {
 
     private void writeObjecToFile(JSONObject obj) {
 	int hash = obj.get("url").hashCode();
-	File f = new File(settings.getPathToCache()+"/"+hash);
+	File f = new File(settings.getPathToCache() + "/" + hash);
 	Utils.appendTolFile(f, obj.toJSONString());
-	System.out.println("Wrote: " + obj.get("url"));
     }
 
     /**
      * Method that deals with the cached data when the proxy is starting up
      */
     public void onStartup() {
-	// TODO READ FILES
+	File f = Utils.getFile(settings.getPathToCache());
+	File[] ff = f.listFiles();
+	for (int i = 0; i < ff.length; i++) {
+	    try {
+		String s = new String(Files.readAllBytes(ff[i].toPath()));
+		JSONObject obj = (JSONObject) parser.parse(s);
+		CacheInfoObject info = Utils.convertToCacheInfoObject(obj);
+		ProxyCacheManager.getInstance().cacheIn(info.getKey(), info);
+	    } catch (IOException e) {
+		ProxyLogger.getInstance().log(ProxyLogLevel.EXCEPTION,
+			"Unable to read file: " + ff[i].getName());
+	    } catch (ParseException e) {
+		e.printStackTrace();
+	    }
+	}
     }
 }

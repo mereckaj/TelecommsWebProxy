@@ -30,14 +30,15 @@ import com.mereckaj.webproxy.ProxyLogger;
  * 
  */
 public class Utils {
-    public static void appendTolFile(File f,String data){
+    public static void appendTolFile(File f, String data) {
 	try {
 	    FileWriter fw = new FileWriter(f);
 	    fw.append(data);
 	    fw.flush();
 	    fw.close();
 	} catch (IOException e) {
-	    ProxyLogger.getInstance().log(ProxyLogLevel.EXCEPTION, "Couldn't write cached item to file");
+	    ProxyLogger.getInstance().log(ProxyLogLevel.EXCEPTION,
+		    "Couldn't write cached item to file");
 	}
     }
 
@@ -64,35 +65,35 @@ public class Utils {
 	String[] keys = new String[k.size()];
 	k.toArray(keys);
 	boolean v;
-	int n;
+	long n;
 	Date d;
 	String s;
 	for (int i = 0; i < keys.length; i++) {
 	    switch (keys[i]) {
 	    case "nocache":
-		v = Boolean.parseBoolean((String) obj.get(keys[i]));
+		v = (boolean) obj.get(keys[i]);
 		info.setNoCache(v);
 		break;
 	    case "private":
-		v = Boolean.parseBoolean((String) obj.get(keys[i]));
+		v = (boolean) obj.get(keys[i]);
 		info.setPrivate(v);
 		break;
 	    case "public":
-		v = Boolean.parseBoolean((String) obj.get(keys[i]));
+		v = (boolean) obj.get(keys[i]);
 		info.setPublic(v);
 		break;
 	    case "nomodify":
-		v = Boolean.parseBoolean((String) obj.get(keys[i]));
+		v = (boolean) obj.get(keys[i]);
 		info.setNoModify(v);
 		break;
 	    case "maxage":
-		n = Integer.parseInt((String) obj.get(keys[i]));
+		n = (long) obj.get(keys[i]);
 		info.setMaxAge(n);
 		break;
 	    case "date":
 		try {
-		    d = DateFormat.getInstance().parse((String) obj.get(keys[i]));
-		    info.setDate(d);
+		    SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd hh:mm:ss zzz yyyy");
+		    info.setDate(sdf.parse((String) obj.get(keys[i])));
 		} catch (ParseException e) {
 		    ProxyLogger.getInstance().log(ProxyLogLevel.EXCEPTION,
 			    "Unable to parse Date " + obj.get("url"));
@@ -112,6 +113,13 @@ public class Utils {
 		System.out.println("CAN NOT PARSE: " + keys[i]);
 		break;
 	    }
+	}
+	d = info.getDate();
+	Calendar c = Calendar.getInstance();
+	c.setTime(d);
+	c.add(Calendar.SECOND, (int) info.getMaxAge());
+	if(c.after(d)){
+	    info = null;
 	}
 	return info;
     }
@@ -184,4 +192,5 @@ public class Utils {
 	int n = s.indexOf('\n');
 	return s.substring(i, n).trim();
     }
+
 }

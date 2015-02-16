@@ -140,7 +140,7 @@ public class ProxyWorkerThread extends Thread {
 		 */
 		httpResponseHeader = new HttpResponseParser(hostToUserData);
 		cacheInfoObject = httpResponseHeader.getCacheInfo();
-		if (cacheInfoObject.isCacheable()) {
+		if (cacheInfoObject!=null && cacheInfoObject.isCacheable()) {
 		    cacheInfoObject.put(hostToUserData);
 		    cacheThisData = true;
 		} else {

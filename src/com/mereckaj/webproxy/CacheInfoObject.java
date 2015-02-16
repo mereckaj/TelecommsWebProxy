@@ -19,7 +19,7 @@ public class CacheInfoObject {
     private boolean isPrivate;
     private boolean isPublic;
     private boolean noModify;
-    private int maxAge;
+    private long maxAge;
     private Date date;
     private byte[] data;
     private boolean mustRevalidate;
@@ -78,11 +78,11 @@ public class CacheInfoObject {
 	this.noModify = noModify;
     }
 
-    public int getMaxAge() {
+    public long getMaxAge() {
 	return maxAge;
     }
 
-    public void setMaxAge(int maxAge) {
+    public void setMaxAge(long maxAge) {
 	this.maxAge = maxAge;
     }
 

@@ -77,6 +77,7 @@ public class ProxyGUI {
 	    }
 	});
 	proxyMainThread = new HTTPProxy();
+	ProxyCacheManager.getInstance().onStartup();
 	proxyMainThread.run();
     }
 
@@ -90,7 +91,7 @@ public class ProxyGUI {
 	System.setOut(new PrintStream(new OutputStream() {
 	    @Override
 	    public void write(int arg0) throws IOException {
-		addToInfoAread((char) arg0 + "",false);
+		addToInfoAread((char) arg0 + "", false);
 	    }
 	}));
     }
@@ -132,11 +133,19 @@ public class ProxyGUI {
 	    public void actionPerformed(ActionEvent e) {
 		ProxyCacheManager manager = ProxyCacheManager.getInstance();
 		CacheInfoObject[] objs = manager.getAllCachedItems();
-		addToInfoAread("___CACHE_DUMP_START___", true);
+		addToInfoAread(
+			"________________________CACHE_DUMP_START________________________________",
+			true);
 		for (int i = 0; i < objs.length; i++) {
-		    addToInfoAread("\t" + objs[i].getKey(), true);
+		    addToInfoAread("|" + objs[i].getDate().toString() + "|" + objs[i].getMaxAge()
+			    + "|" + objs[i].getKey(), true);
+		    addToInfoAread(
+			    "________________________________________________________________________________",
+			    true);
 		}
-		addToInfoAread("___CACHE_DUMP_END___", true);
+		addToInfoAread(
+			"_________________________CACHE_DUMP_END_________________________________",
+			true);
 	    }
 	});
 	mnFile.add(mntmOpenFile);
@@ -377,12 +386,12 @@ public class ProxyGUI {
 	infoField.setColumns(10);
 
     }
-    
-    public static void addToInfoAread(String s,boolean addNewLine) {
+
+    public static void addToInfoAread(String s, boolean addNewLine) {
 	l.lock();
 	try {
-	    if(addNewLine){
-		s+="\n";
+	    if (addNewLine) {
+		s += "\n";
 	    }
 	    txtInfoArea.append(s);
 	} finally {
