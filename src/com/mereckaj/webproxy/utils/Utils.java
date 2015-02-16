@@ -3,12 +3,20 @@ package com.mereckaj.webproxy.utils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Set;
 import java.util.logging.Level;
 
+import org.json.simple.JSONObject;
+
+import com.mereckaj.webproxy.CacheInfoObject;
+import com.mereckaj.webproxy.ProxyLogLevel;
 import com.mereckaj.webproxy.ProxyLogger;
 
 /**
@@ -22,6 +30,91 @@ import com.mereckaj.webproxy.ProxyLogger;
  * 
  */
 public class Utils {
+    public static void appendTolFile(File f,String data){
+	try {
+	    FileWriter fw = new FileWriter(f);
+	    fw.append(data);
+	    fw.flush();
+	    fw.close();
+	} catch (IOException e) {
+	    ProxyLogger.getInstance().log(ProxyLogLevel.EXCEPTION, "Couldn't write cached item to file");
+	}
+    }
+
+    @SuppressWarnings("unchecked")
+    public static JSONObject convertToJSON(CacheInfoObject info) {
+	JSONObject obj = new JSONObject();
+	obj.put("nocache", (!info.isCacheable()));
+	obj.put("private", info.isPrivate());
+	obj.put("public", info.isPublic());
+	obj.put("nomodify", info.isNoModify());
+	obj.put("maxage", info.getMaxAge());
+	obj.put("date", info.getDate().toString());
+	obj.put("data", "test");
+	obj.put("data", new String(info.getData()));
+	obj.put("url", info.getKey());
+	obj.put("method", info.getMethod());
+	return obj;
+    }
+
+    public static CacheInfoObject convertToCacheInfoObject(JSONObject obj) {
+	CacheInfoObject info = new CacheInfoObject();
+	@SuppressWarnings("unchecked")
+	Set<String> k = obj.keySet();
+	String[] keys = new String[k.size()];
+	k.toArray(keys);
+	boolean v;
+	int n;
+	Date d;
+	String s;
+	for (int i = 0; i < keys.length; i++) {
+	    switch (keys[i]) {
+	    case "nocache":
+		v = Boolean.parseBoolean((String) obj.get(keys[i]));
+		info.setNoCache(v);
+		break;
+	    case "private":
+		v = Boolean.parseBoolean((String) obj.get(keys[i]));
+		info.setPrivate(v);
+		break;
+	    case "public":
+		v = Boolean.parseBoolean((String) obj.get(keys[i]));
+		info.setPublic(v);
+		break;
+	    case "nomodify":
+		v = Boolean.parseBoolean((String) obj.get(keys[i]));
+		info.setNoModify(v);
+		break;
+	    case "maxage":
+		n = Integer.parseInt((String) obj.get(keys[i]));
+		info.setMaxAge(n);
+		break;
+	    case "date":
+		try {
+		    d = DateFormat.getInstance().parse((String) obj.get(keys[i]));
+		    info.setDate(d);
+		} catch (ParseException e) {
+		    ProxyLogger.getInstance().log(ProxyLogLevel.EXCEPTION,
+			    "Unable to parse Date " + obj.get("url"));
+		}
+		break;
+	    case "data":
+		s = (String) obj.get(keys[i]);
+		info.setData(s.getBytes());
+		break;
+	    case "url":
+		info.setKey((String) obj.get(keys[i]));
+		break;
+	    case "method":
+		info.setMethod((String) obj.get(keys[i]));
+		break;
+	    default:
+		System.out.println("CAN NOT PARSE: " + keys[i]);
+		break;
+	    }
+	}
+	return info;
+    }
 
     public static BufferedReader openFile(String path) {
 

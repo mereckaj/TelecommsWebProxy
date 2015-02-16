@@ -1,5 +1,6 @@
 package com.mereckaj.webproxy;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
@@ -8,9 +9,8 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import javax.swing.plaf.FileChooserUI;
-
 import org.apache.commons.io.FileUtils;
+import org.json.simple.JSONObject;
 
 import com.mereckaj.webproxy.utils.Utils;
 
@@ -42,9 +42,13 @@ public class ProxyCacheManager {
     private static Hashtable<String, CacheInfoObject> cache = new Hashtable<String, CacheInfoObject>();
     private static ReentrantReadWriteLock cacheLock;
     private ProxyLogger logger;
+    private ProxySettings settings;
     private Calendar c = Calendar.getInstance();
 
     private ProxyCacheManager() {
+	if(settings == null){
+	    settings = ProxySettings.getInstance();
+	}
 	//TODO: Read in cache from file
 	// Check to see if a lock already exists, create it if not
 	if (cacheLock == null) {
@@ -213,23 +217,28 @@ public class ProxyCacheManager {
      * Method that deals with the cached data when the proxy is shutting down
      */
     public void onShutdown() {
-	ProxySettings settings = ProxySettings.getInstance();
-//	try {
-//	    FileUtils.cleanDirectory(Utils.getFile(settings.getPathToCache()));
-//	} catch (IOException e) {
-//	    e.printStackTrace();
-//	}
+	try {
+	    FileUtils.cleanDirectory(Utils.getFile(settings.getPathToCache()));
+	} catch (IOException e) {
+	    e.printStackTrace();
+	}
 	try {
 	    cacheLock.writeLock().lock();
 	    String[] keys = new String[cache.keySet().size()];
 	    cache.keySet().toArray(keys);
 	    for(int i = 0; i <keys.length;i++){
-		System.out.println("Writting to file: " + keys[i]);
+		writeObjecToFile(Utils.convertToJSON(cache.get(keys[i])));
 	    }
 	} finally {
 	    cacheLock.writeLock().unlock();
 	}
-	// TODO WRITE FILES
+    }
+
+    private void writeObjecToFile(JSONObject obj) {
+	int hash = obj.get("url").hashCode();
+	File f = new File(settings.getPathToCache()+"/"+hash);
+	Utils.appendTolFile(f, obj.toJSONString());
+	System.out.println("Wrote: " + obj.get("url"));
     }
 
     /**

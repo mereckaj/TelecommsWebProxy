@@ -46,7 +46,7 @@ public class ProxySettings {
 
     private ProxySettings() {
 	if (pathToCache == null) {
-	    pathToCache = "/.cache";
+	    pathToCache = ".cache";
 	}
 	if (maxBufferSize == 0) {
 	    maxBufferSize = 65536;
@@ -314,11 +314,12 @@ public class ProxySettings {
     }
 
     public void setRunning(boolean v) {
+	running = v;
 	if (v == false) {
+	    running = v;
 	    writeConfigHostIpPhraseDataToFile();
 	    ProxyCacheManager.getInstance().onShutdown();
 	}
-	running = v;
     }
 
     public int getMaxBuffer() {

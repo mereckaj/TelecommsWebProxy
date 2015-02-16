@@ -56,6 +56,7 @@ public class ProxyGUI {
     static HTTPProxy proxyMainThread;
     public static OutputStream outputStream;
     private static Lock l;
+    public static PrintStream originalSystemOut;
 
     public static void main(String[] args) {
 	l = new ReentrantLock();
@@ -85,6 +86,7 @@ public class ProxyGUI {
     }
 
     private void setUpSystemOut() {
+	originalSystemOut = System.out;
 	System.setOut(new PrintStream(new OutputStream() {
 	    @Override
 	    public void write(int arg0) throws IOException {
@@ -106,6 +108,7 @@ public class ProxyGUI {
 				"Exit Program Message Box", JOptionPane.YES_NO_OPTION);
 
 		if (confirmed == JOptionPane.YES_OPTION) {
+		    System.setOut(originalSystemOut);
 		    frmWebProxy.dispose();
 		    ProxySettings.getInstance().setRunning(false);
 		} else {
@@ -137,23 +140,6 @@ public class ProxyGUI {
 	    }
 	});
 	mnFile.add(mntmOpenFile);
-
-	JMenuItem mntmClose = new JMenuItem("Close");
-	mntmClose.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent arg0) {
-		int confirmed = JOptionPane.showConfirmDialog(null,
-			"Are you sure you want to exis?", "Exit Program ?",
-			JOptionPane.YES_NO_OPTION);
-
-		if (confirmed == JOptionPane.YES_OPTION) {
-		    frmWebProxy.dispose();
-		    ProxySettings.getInstance().setRunning(false);
-		} else {
-		    frmWebProxy.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		}
-	    }
-	});
-	mnFile.add(mntmClose);
 
 	JMenu mnEdit = new JMenu("Edit");
 	menuBar.add(mnEdit);

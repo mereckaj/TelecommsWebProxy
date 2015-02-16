@@ -109,10 +109,11 @@ public class HttpResponseParser {
     }
 
     public CacheInfoObject getCacheInfo() {
-	if (method.contains("304 Not Modified")) {
+	if (!method.contains("200")) {
 	    return null;
 	}
 	CacheInfoObject infoObject = new CacheInfoObject();
+	infoObject.setMethod(method);
 	String[] settings;
 	String tmp = "";
 	boolean cacheControl = (headerFields.containsKey("Cache-Control") || headerFields

@@ -14,6 +14,7 @@ import java.util.Date;
 public class CacheInfoObject {
     //TODO: change time stamp when returning cached item
     public String wholeheader;
+    private String method;
     private boolean noCache;
     private boolean isPrivate;
     private boolean isPublic;
@@ -38,6 +39,7 @@ public class CacheInfoObject {
 	setDate(new Date(0));
 	setData(null);
 	setKey(null);
+	setMethod("404");
     }
 
     public boolean hasExpired(String date) {
@@ -137,5 +139,13 @@ public class CacheInfoObject {
 
     public void setKey(String key) {
 	this.key = key;
+    }
+
+    public String getMethod() {
+	return method;
+    }
+
+    public void setMethod(String method) {
+	this.method = method;
     }
 }
